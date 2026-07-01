@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Year of AI 2026 Training — Intelligence Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,700;9..144,900&family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg-0:#0a0e1a;
+  --bg-1:#0f1424;
+  --bg-2:#161c33;
+  --bg-3:#1f2742;
+  --line:rgba(255,255,255,0.08);
+  --line-2:rgba(255,255,255,0.14);
+  --ink:#f4f1ea;
+  --ink-2:#c9c5bc;
+  --ink-3:#7d8499;
+  --acc:#7cf9c7;       /* mint */
+  --acc-2:#ffb547;     /* amber */
+  --acc-3:#ff7e7e;     /* coral */
+  --acc-4:#8ab6ff;     /* steel blue */
+  --acc-5:#c694ff;     /* lilac */
+  --grad-1:linear-gradient(135deg,#7cf9c7 0%,#8ab6ff 100%);
+  --grad-2:linear-gradient(135deg,#ffb547 0%,#ff7e7e 100%);
+  --grad-3:linear-gradient(135deg,#c694ff 0%,#8ab6ff 100%);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg-0);color:var(--ink);font-family:'Outfit',sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body{
+  background:
+    radial-gradient(ellipse 1200px 600px at 10% -10%, rgba(124,249,199,0.08), transparent 50%),
+    radial-gradient(ellipse 900px 500px at 90% 0%, rgba(198,148,255,0.07), transparent 50%),
+    radial-gradient(ellipse 800px 400px at 50% 100%, rgba(255,181,71,0.05), transparent 50%),
+    var(--bg-0);
+  min-height:100vh;
+}
+.grain{position:fixed;inset:0;pointer-events:none;opacity:0.035;z-index:1;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+.container{max-width:1480px;margin:0 auto;padding:32px 28px 96px;position:relative;z-index:2}
+
+/* HEADER */
+.header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:24px;padding-bottom:28px;border-bottom:1px solid var(--line);margin-bottom:36px;position:relative}
+.header::before{content:"";position:absolute;left:0;bottom:-1px;width:120px;height:2px;background:var(--grad-1)}
+.brand{display:flex;align-items:center;gap:16px}
+.brand-mark{width:54px;height:54px;border-radius:14px;background:var(--grad-1);display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:900;font-size:26px;color:#0a0e1a;box-shadow:0 8px 24px rgba(124,249,199,0.25);position:relative;overflow:hidden}
+.brand-mark::after{content:"";position:absolute;inset:0;background:linear-gradient(135deg,transparent 50%,rgba(255,255,255,0.3) 100%)}
+.brand-text .eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.2em;color:var(--acc);text-transform:uppercase;margin-bottom:4px}
+.brand-text h1{font-family:'Fraunces',serif;font-weight:500;font-size:34px;letter-spacing:-0.02em;line-height:1.05}
+.brand-text h1 em{font-style:italic;color:var(--acc-2);font-weight:400}
+.header-meta{text-align:right}
+.header-meta .label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.18em;color:var(--ink-3);text-transform:uppercase;margin-bottom:6px}
+.header-meta .value{font-family:'Fraunces',serif;font-size:20px;color:var(--ink)}
+.live-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--acc);box-shadow:0 0 12px var(--acc);animation:pulse 2s infinite;margin-right:8px;vertical-align:middle}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+/* LIVE DATA BAR (COLLAPSIBLE) */
+.source-bar{margin-bottom:36px;background:linear-gradient(180deg,rgba(31,39,66,0.5) 0%,rgba(15,20,36,0.3) 100%);border:1px solid var(--line);border-radius:16px;padding:16px 22px;display:none;align-items:center;gap:18px;flex-wrap:wrap;animation:slideDown 0.35s ease}
+.source-bar.show{display:flex}
+@keyframes slideDown{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
+.source-icon{width:44px;height:44px;border-radius:12px;background:rgba(124,249,199,0.1);border:1px solid rgba(124,249,199,0.25);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.source-icon svg{width:22px;height:22px;stroke:var(--acc)}
+.source-text{flex:1;min-width:200px}
+.source-text h3{font-family:'Outfit',sans-serif;font-size:15px;font-weight:600;margin-bottom:2px;display:flex;align-items:center;gap:10px}
+.source-text p{color:var(--ink-3);font-size:12.5px}
+.source-status{display:inline-flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:3px 9px;border-radius:20px;border:1px solid var(--line-2)}
+.source-status.live{color:var(--acc);border-color:rgba(124,249,199,0.3);background:rgba(124,249,199,0.07)}
+.source-status.cached{color:var(--acc-2);border-color:rgba(255,181,71,0.3);background:rgba(255,181,71,0.07)}
+.source-status.loading{color:var(--ink-3)}
+.source-status .sdot{width:6px;height:6px;border-radius:50%;background:currentColor}
+.source-status.live .sdot{animation:pulse 2s infinite}
+.btn{padding:10px 18px;border-radius:10px;border:none;cursor:pointer;font-family:'Outfit',sans-serif;font-weight:500;font-size:13px;letter-spacing:0.02em;transition:all 0.2s}
+.btn-ghost{background:rgba(255,255,255,0.05);color:var(--ink);border:1px solid var(--line-2)}
+.btn-ghost:hover{background:rgba(255,255,255,0.1)}
+.btn-ghost svg{width:14px;height:14px;stroke:currentColor;vertical-align:-2px;margin-right:6px}
+
+/* HIGHLIGHT LAKEHOUSE KPI */
+.kpi.k5{border:1.5px solid var(--acc-5);background:linear-gradient(135deg,rgba(198,148,255,0.35) 0%,rgba(198,148,255,0.22) 100%);box-shadow:0 0 36px rgba(198,148,255,0.5),inset 0 0 28px rgba(198,148,255,0.25)}
+.kpi.k5 .num{color:var(--acc-5);font-weight:600}
+
+/* COLLAPSIBLE SECTION REVEAL */
+.section-reveal{max-height:0;overflow:hidden;opacity:0;transition:max-height 0.55s ease, opacity 0.4s ease, margin 0.4s ease;margin:0}
+.section-reveal.open{max-height:12000px;opacity:1;margin-bottom:48px}
+
+/* DBL DATA LAKEHOUSE */
+.lake-status-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px}
+.lake-stat{background:linear-gradient(180deg,var(--bg-2) 0%,var(--bg-1) 100%);border:1px solid var(--line);border-radius:14px;padding:18px 20px;position:relative;overflow:hidden}
+.lake-stat::before{content:"";position:absolute;top:0;left:0;width:100%;height:3px}
+.lake-stat.s-done::before{background:var(--acc)}
+.lake-stat.s-ongoing::before{background:var(--acc-2)}
+.lake-stat.s-risk::before{background:var(--acc-3)}
+.lake-stat.s-next::before{background:var(--acc-4)}
+.lake-stat .ls-lab{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.16em;color:var(--ink-3);text-transform:uppercase;margin-bottom:10px}
+.lake-stat .ls-num{font-family:'Fraunces',serif;font-weight:500;font-size:38px;line-height:1;letter-spacing:-0.02em}
+.lake-stat.s-done .ls-num{color:var(--acc)}
+.lake-stat.s-ongoing .ls-num{color:var(--acc-2)}
+.lake-stat.s-risk .ls-num{color:var(--acc-3)}
+.lake-stat.s-next .ls-num{color:var(--acc-4)}
+.lake-stat .ls-sub{color:var(--ink-3);font-size:12px;margin-top:6px}
+
+.lake-progress-panel{background:linear-gradient(135deg,rgba(31,39,66,0.6) 0%,rgba(15,20,36,0.4) 100%);border:1px solid var(--line);border-radius:18px;padding:24px 26px;margin-bottom:24px}
+.lake-progress-panel .lpp-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;flex-wrap:wrap;gap:8px}
+.lake-progress-panel h3{font-family:'Fraunces',serif;font-size:20px;font-weight:500}
+.lake-progress-panel .lpp-pct{font-family:'Fraunces',serif;font-size:30px;font-weight:500;color:var(--acc)}
+.lake-progress-panel p{color:var(--ink-2);font-size:13px;line-height:1.6;margin-bottom:16px}
+.lpp-bar{height:12px;background:rgba(255,255,255,0.05);border-radius:6px;overflow:hidden;display:flex}
+.lpp-bar span{height:100%;display:block;transition:width 0.6s ease}
+.lpp-bar .pb-done{background:var(--acc)}
+.lpp-bar .pb-ongoing{background:var(--acc-2)}
+.lpp-bar .pb-risk{background:var(--acc-3)}
+.lpp-bar .pb-next{background:rgba(138,182,255,0.4)}
+.lpp-legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:14px}
+.lpp-legend span{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.08em;color:var(--ink-3);text-transform:uppercase;display:flex;align-items:center;gap:6px}
+.lpp-legend i{width:9px;height:9px;border-radius:2px;display:inline-block}
+
+.lake-group{margin-bottom:26px}
+.lake-group:last-child{margin-bottom:0}
+.lake-group-head{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.lake-group-head .lgh-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+.lake-group-head h3{font-family:'Fraunces',serif;font-size:20px;font-weight:500}
+.lake-group-head .lgh-count{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-3);background:rgba(255,255,255,0.04);border:1px solid var(--line);padding:3px 9px;border-radius:20px}
+.lake-items{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:12px}
+.lake-item{background:rgba(31,39,66,0.4);border:1px solid var(--line);border-radius:14px;padding:16px 18px;transition:all 0.2s}
+.lake-item:hover{border-color:var(--line-2);background:rgba(31,39,66,0.65)}
+.lake-item .li-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:8px}
+.lake-item .li-title{font-size:14.5px;font-weight:600;color:var(--ink);line-height:1.3}
+.lake-item .li-area{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:0.1em;color:var(--ink-3);text-transform:uppercase;margin-top:3px}
+.lake-item .li-pct{font-family:'Fraunces',serif;font-size:22px;font-weight:500;flex-shrink:0}
+.lake-item .li-msg{color:var(--ink-2);font-size:12.5px;line-height:1.55;margin-bottom:10px}
+.lake-item .li-bar{height:4px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden;margin-bottom:10px}
+.lake-item .li-bar span{display:block;height:100%;border-radius:2px}
+.lake-item .li-foot{display:flex;flex-wrap:wrap;gap:6px}
+.lake-chip{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:0.04em;color:var(--ink-2);background:rgba(255,255,255,0.04);border:1px solid var(--line);padding:3px 8px;border-radius:6px}
+.lake-chip.owner{color:var(--acc-4)}
+.lake-chip.date{color:var(--acc-2)}
+.lake-chip.prio-high{color:var(--acc-3);border-color:rgba(255,126,126,0.25)}
+
+/* KPI ROW */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;margin-bottom:40px}
+.kpi{background:linear-gradient(180deg,var(--bg-2) 0%,var(--bg-1) 100%);border:1px solid var(--line);border-radius:18px;padding:22px 24px;position:relative;overflow:hidden;transition:transform 0.25s, border-color 0.25s}
+.kpi:hover{transform:translateY(-3px);border-color:var(--line-2)}
+.kpi::before{content:"";position:absolute;top:0;left:0;width:42px;height:3px;border-radius:0 0 3px 0}
+.kpi.k1::before{background:var(--acc)}.kpi.k2::before{background:var(--acc-2)}
+.kpi.k3::before{background:var(--acc-4)}.kpi.k4::before{background:var(--acc-5)}
+.kpi.k5::before{background:var(--acc-3)}
+.kpi .lab{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.2em;color:var(--ink-3);text-transform:uppercase;margin-bottom:14px}
+.kpi .num{font-family:'Fraunces',serif;font-weight:500;font-size:46px;line-height:1;letter-spacing:-0.03em}
+.kpi.k1 .num{color:var(--acc)}.kpi.k2 .num{color:var(--acc-2)}
+.kpi.k3 .num{color:var(--acc-4)}.kpi.k4 .num{color:var(--acc-5)}
+.kpi.k5 .num{color:var(--acc-3)}
+.kpi .sub{color:var(--ink-3);font-size:13px;margin-top:8px}
+/* Clickable KPI (drill-in) */
+.kpi.clickable{cursor:pointer}
+.kpi.clickable:hover{border-color:var(--acc-4);box-shadow:0 10px 28px rgba(0,0,0,0.4)}
+.kpi.clickable .sub{color:var(--acc-4);display:flex;align-items:center;gap:6px}
+.kpi.clickable .chev{display:inline-block;transition:transform 0.25s;font-family:'JetBrains Mono',monospace}
+.kpi.clickable.open .chev{transform:rotate(90deg)}
+
+/* Collapsible department reveal */
+.dept-reveal{max-height:0;overflow:hidden;opacity:0;transition:max-height 0.5s ease, opacity 0.35s ease, margin 0.35s ease;margin:0}
+.dept-reveal.open{max-height:6000px;opacity:1;margin-bottom:48px}
+
+/* SECTION HEADER */
+.section-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.section-head h2{font-family:'Fraunces',serif;font-weight:500;font-size:28px;letter-spacing:-0.02em}
+.section-head h2 .accent{color:var(--acc-2);font-style:italic;font-weight:400}
+.section-head .hint{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.15em;color:var(--ink-3);text-transform:uppercase}
+
+/* DEPARTMENT CARDS */
+.dept-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-bottom:48px}
+.dept-card{background:linear-gradient(180deg,var(--bg-2) 0%,var(--bg-1) 100%);border:1px solid var(--line);border-radius:14px;padding:18px 18px 16px;cursor:pointer;position:relative;overflow:hidden;transition:all 0.25s}
+.dept-card::after{content:"→";position:absolute;top:18px;right:18px;color:var(--ink-3);font-size:18px;transition:all 0.25s;opacity:0}
+.dept-card:hover{transform:translateY(-3px);border-color:var(--acc);box-shadow:0 10px 30px rgba(0,0,0,0.4)}
+.dept-card:hover::after{opacity:1;color:var(--acc);transform:translate(2px,-2px)}
+.dept-card:hover .bar-fill{filter:brightness(1.3)}
+.dept-name{font-size:14px;font-weight:500;color:var(--ink);margin-bottom:14px;line-height:1.3;min-height:36px}
+.dept-stat{display:flex;align-items:baseline;gap:8px;margin-bottom:10px}
+.dept-stat .num{font-family:'Fraunces',serif;font-size:32px;font-weight:500;letter-spacing:-0.02em;color:var(--acc)}
+.dept-stat .lab{font-size:11px;color:var(--ink-3);font-family:'JetBrains Mono',monospace;letter-spacing:0.1em;text-transform:uppercase}
+.bar{height:4px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden}
+.bar-fill{height:100%;background:var(--grad-1);border-radius:2px;transition:filter 0.25s}
+
+/* CHARTS GRID */
+.chart-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:18px;margin-bottom:48px}
+.chart-grid-2{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-bottom:48px}
+.panel{background:linear-gradient(180deg,var(--bg-2) 0%,rgba(15,20,36,0.6) 100%);border:1px solid var(--line);border-radius:18px;padding:24px;position:relative}
+.panel h3{font-family:'Fraunces',serif;font-weight:500;font-size:18px;margin-bottom:4px}
+.panel .panel-sub{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.18em;color:var(--ink-3);text-transform:uppercase;margin-bottom:18px}
+.chart-wrap{position:relative;height:280px}
+.chart-wrap.tall{height:340px}
+
+/* SESSIONS LIST */
+.sessions-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
+.session-row{background:rgba(31,39,66,0.4);border:1px solid var(--line);border-radius:12px;padding:16px 18px;display:flex;justify-content:space-between;align-items:center;gap:12px;transition:all 0.2s}
+.session-row:hover{border-color:var(--line-2);background:rgba(31,39,66,0.7)}
+.session-row .left .date{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--acc-2);letter-spacing:0.1em;margin-bottom:4px}
+.session-row .left .loc{font-size:15px;font-weight:500;margin-bottom:2px}
+.session-row .left .trn{font-size:12px;color:var(--ink-3)}
+.session-row .right{text-align:right;flex-shrink:0}
+.session-row .right .count{font-family:'Fraunces',serif;font-size:28px;font-weight:500;color:var(--acc);line-height:1}
+.session-row .right .lab{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-3);letter-spacing:0.1em;text-transform:uppercase}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(5,8,16,0.85);backdrop-filter:blur(8px);z-index:100;display:none;align-items:center;justify-content:center;padding:24px;animation:fadeIn 0.2s ease}
+.modal-bg.show{display:flex}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.modal{background:linear-gradient(180deg,var(--bg-2) 0%,var(--bg-1) 100%);border:1px solid var(--line-2);border-radius:22px;width:100%;max-width:900px;max-height:88vh;overflow:hidden;display:flex;flex-direction:column;animation:slideUp 0.3s ease;box-shadow:0 30px 80px rgba(0,0,0,0.6)}
+.modal-head{padding:26px 28px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-start;gap:16px;background:linear-gradient(180deg,rgba(124,249,199,0.04) 0%,transparent 100%)}
+.modal-head .eyebrow{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.2em;color:var(--acc);margin-bottom:6px}
+.modal-head h2{font-family:'Fraunces',serif;font-weight:500;font-size:26px;letter-spacing:-0.02em;margin-bottom:4px}
+.modal-head .meta{color:var(--ink-3);font-size:13px}
+.modal-close{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid var(--line);color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0}
+.modal-close:hover{background:rgba(255,126,126,0.15);border-color:var(--acc-3);color:var(--acc-3)}
+.modal-body{padding:24px 28px;overflow-y:auto;flex:1}
+.modal-body::-webkit-scrollbar{width:6px}
+.modal-body::-webkit-scrollbar-track{background:transparent}
+.modal-body::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:3px}
+.session-block{margin-bottom:24px}
+.session-block:last-child{margin-bottom:0}
+.session-block-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:rgba(255,181,71,0.06);border:1px solid rgba(255,181,71,0.2);border-radius:12px;margin-bottom:10px}
+.session-block-head .info .date{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--acc-2);letter-spacing:0.12em;margin-bottom:3px}
+.session-block-head .info .loc{font-size:15px;font-weight:500}
+.session-block-head .info .trn{font-size:12px;color:var(--ink-3);margin-top:2px}
+.session-block-head .badge{background:var(--acc-2);color:#0a0e1a;padding:6px 12px;border-radius:8px;font-weight:600;font-size:13px;font-family:'JetBrains Mono',monospace}
+.participant-table{width:100%;border-collapse:collapse;font-size:13px}
+.participant-table th{text-align:left;padding:10px 14px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.12em;color:var(--ink-3);text-transform:uppercase;border-bottom:1px solid var(--line);font-weight:500}
+.participant-table td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.03);color:var(--ink-2)}
+.participant-table tr:hover td{background:rgba(255,255,255,0.02);color:var(--ink)}
+.participant-table .id{font-family:'JetBrains Mono',monospace;color:var(--ink-3);font-size:12px}
+
+/* TOPICS SECTION */
+.topics-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:48px}
+.topic{background:linear-gradient(180deg,var(--bg-2) 0%,var(--bg-1) 100%);border:1px solid var(--line);border-radius:16px;padding:22px;position:relative;overflow:hidden;transition:all 0.25s}
+.topic:hover{transform:translateY(-2px);border-color:var(--line-2)}
+.topic-num{font-family:'Fraunces',serif;font-style:italic;font-size:14px;color:var(--ink-3);margin-bottom:8px}
+.topic h4{font-family:'Fraunces',serif;font-size:20px;font-weight:500;margin-bottom:10px;letter-spacing:-0.01em;line-height:1.2}
+.topic h4 .hl{color:var(--acc)}
+.topic p{color:var(--ink-2);font-size:13px;line-height:1.6}
+.topic .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.tag{padding:3px 10px;border-radius:30px;background:rgba(255,255,255,0.04);border:1px solid var(--line);font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-2);letter-spacing:0.05em}
+
+/* AUTOMATION USE CASES */
+.auto-grid{display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:48px}
+.auto-card{background:linear-gradient(135deg,rgba(31,39,66,0.6) 0%,rgba(15,20,36,0.4) 100%);border:1px solid var(--line);border-radius:18px;padding:24px 26px;display:grid;grid-template-columns:60px 1fr auto;gap:22px;align-items:center;transition:all 0.25s}
+.auto-card:hover{border-color:var(--line-2);transform:translateX(2px)}
+.auto-icon{width:60px;height:60px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:500;font-size:24px;font-style:italic}
+.auto-icon.i1{background:rgba(124,249,199,0.12);color:var(--acc)}
+.auto-icon.i2{background:rgba(255,181,71,0.12);color:var(--acc-2)}
+.auto-icon.i3{background:rgba(138,182,255,0.12);color:var(--acc-4)}
+.auto-icon.i4{background:rgba(198,148,255,0.12);color:var(--acc-5)}
+.auto-icon.i5{background:rgba(255,126,126,0.12);color:var(--acc-3)}
+.auto-icon.i6{background:rgba(124,249,199,0.12);color:var(--acc)}
+.auto-icon.i7{background:rgba(255,181,71,0.12);color:var(--acc-2)}
+.auto-icon.i8{background:rgba(138,182,255,0.12);color:var(--acc-4)}
+.auto-body h4{font-family:'Fraunces',serif;font-size:20px;font-weight:500;margin-bottom:6px;letter-spacing:-0.01em}
+.auto-body .flow{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-3);margin-bottom:8px;letter-spacing:0.05em}
+.auto-body .flow .arrow{color:var(--acc-2);margin:0 6px}
+.auto-body p{color:var(--ink-2);font-size:13px;line-height:1.55}
+.auto-tag{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-3);letter-spacing:0.15em;text-transform:uppercase;background:rgba(255,255,255,0.04);padding:6px 12px;border-radius:8px;border:1px solid var(--line);white-space:nowrap}
+
+/* FOOTER */
+.foot{padding-top:32px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;color:var(--ink-3);font-size:12px;font-family:'JetBrains Mono',monospace;letter-spacing:0.08em}
+
+/* BACK TO TOP BUTTON */
+.back-to-top-btn{position:fixed;bottom:32px;right:32px;width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,rgba(124,249,199,0.15) 0%,rgba(124,249,199,0.08) 100%);border:1.5px solid rgba(124,249,199,0.4);color:var(--acc);cursor:pointer;display:none;align-items:center;justify-content:center;padding:0;transition:all 0.3s ease;z-index:999;box-shadow:0 8px 24px rgba(124,249,199,0.2)}
+.back-to-top-btn:hover{background:linear-gradient(135deg,rgba(124,249,199,0.25) 0%,rgba(124,249,199,0.15) 100%);border-color:rgba(124,249,199,0.6);box-shadow:0 12px 32px rgba(124,249,199,0.3);transform:translateY(-4px)}
+.back-to-top-btn.show{display:flex}
+.back-to-top-btn svg{width:22px;height:22px;stroke:currentColor}
+
+/* RESPONSIVE */
+@media (max-width:980px){
+  .chart-grid{grid-template-columns:1fr}
+  .chart-grid-2{grid-template-columns:1fr}
+  .auto-card{grid-template-columns:50px 1fr;}
+  .auto-card .auto-tag{grid-column:1/-1;justify-self:start}
+  .brand-text h1{font-size:26px}
+  .kpi .num{font-size:38px}
+}
+@media (max-width:600px){
+  .container{padding:20px 16px 60px}
+  .source-bar{flex-direction:column;text-align:center;align-items:stretch}
+  .kpi .num{font-size:38px}
+  .header{flex-direction:column;align-items:flex-start}
+  .header-meta{text-align:left}
+}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--bg-2);border:1px solid var(--acc);border-radius:12px;padding:14px 20px;color:var(--ink);box-shadow:0 10px 30px rgba(0,0,0,0.5);z-index:200;display:none;animation:slideUp 0.3s ease;max-width:340px}
+.toast.err{border-color:var(--acc-3)}
+.toast.show{display:block}
+.toast .t-title{font-weight:500;margin-bottom:4px;font-size:14px}
+.toast .t-body{color:var(--ink-3);font-size:12px}
+</style>
+</head>
+<body>
+<div class="grain"></div>
+<div class="container">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="brand">
+      <img src="https://images.seeklogo.com/logo-png/39/1/dbl-group-logo-png_seeklogo-393232.png" alt="DBL Group" style="width:64px;height:64px;border-radius:18px;object-fit:cover;background:linear-gradient(135deg,rgba(255,255,255,0.15) 0%,rgba(255,255,255,0.08) 100%);border:2px solid rgba(124,249,199,0.4);padding:0;box-sizing:border-box;box-shadow:0 12px 32px rgba(0,0,0,0.6),inset 0 1px 2px rgba(255,255,255,0.15);" />
+      <div class="brand-text">
+        <div class="eyebrow">Adaptation Training Programme &amp; DBL Data Lake &amp; Warehouse</div>
+        <h1><em>Intelligence</em> Dashboard</h1>
+      </div>
+    </div>
+    <div class="header-meta">
+      <div class="label"><span class="live-dot"></span>Live Google Sheet</div>
+      <div class="value" id="datasetLabel">Year of AI 2026</div>
+    </div>
+  </header>
+
+  <!-- LIVE DATA SOURCE (COLLAPSIBLE) -->
+  <div style="margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;">
+    <div style="flex:1;"></div>
+    <button class="btn btn-ghost" id="toggleSourceBtn" style="margin-bottom:0;background:rgba(124,249,199,0.08);border-color:rgba(124,249,199,0.2);color:var(--acc);font-size:12px;">
+      <svg style="width:12px;height:12px;stroke:currentColor;display:inline;margin-right:6px;" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+      <span id="toggleSourceText">Show data source</span>
+    </button>
+  </div>
+  <div class="source-bar" id="sourceBar">
+    <div class="source-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <ellipse cx="12" cy="5" rx="9" ry="3"/>
+        <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+        <path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/>
+      </svg>
+    </div>
+    <div class="source-text">
+      <h3>Connected to live Google Sheet
+        <span class="source-status loading" id="srcStatus"><span class="sdot"></span><span id="srcStatusText">Connecting…</span></span>
+      </h3>
+      <p>The dashboard reads directly from the published sheet. Edit the sheet, then reload this page — the report rebuilds automatically. <span id="srcUpdated"></span></p>
+    </div>
+    <button class="btn btn-ghost" id="refreshBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+      Refresh now
+    </button>
+  </div>
+
+  <!-- KPI ROW -->
+  <div class="kpi-grid" id="kpiRow"></div>
+
+  <!-- DEPARTMENTS (hidden until 'Departments reached' KPI is clicked) -->
+  <div class="dept-reveal" id="deptReveal">
+    <div class="section-head">
+      <h2>All departments <span class="accent">attending</span></h2>
+      <div class="hint">Tap a card → see who attended which session</div>
+    </div>
+    <div class="dept-grid" id="deptGrid"></div>
+  </div>
+
+  <!-- CHARTS ROW 1 -->
+  <div class="chart-grid">
+    <div class="panel">
+      <h3>Attendance over the training window</h3>
+      <div class="panel-sub">Participants by date · location stack</div>
+      <div class="chart-wrap tall"><canvas id="chartTimeline"></canvas></div>
+    </div>
+    <div class="panel">
+      <h3>Designation mix</h3>
+      <div class="panel-sub">Top 10 roles in the room</div>
+      <div class="chart-wrap tall"><canvas id="chartDesig"></canvas></div>
+    </div>
+  </div>
+
+  <!-- CHARTS ROW 2 -->
+  <div class="chart-grid-2">
+    <div class="panel">
+      <h3>Locations hosted</h3>
+      <div class="panel-sub">Sessions by venue</div>
+      <div class="chart-wrap"><canvas id="chartLoc"></canvas></div>
+    </div>
+    <div class="panel">
+      <h3>Trainer load</h3>
+      <div class="panel-sub">Participants per trainer</div>
+      <div class="chart-wrap"><canvas id="chartTrainer"></canvas></div>
+    </div>
+    <div class="panel">
+      <h3>Gender split</h3>
+      <div class="panel-sub">Across all sessions</div>
+      <div class="chart-wrap"><canvas id="chartGender"></canvas></div>
+    </div>
+  </div>
+
+  <!-- SESSIONS BREAKDOWN -->
+  <div class="section-head">
+    <h2>Sessions <span class="accent">delivered</span></h2>
+    <div class="hint">Date · venue · trainer · headcount</div>
+  </div>
+  <div class="sessions-list" id="sessionsList" style="margin-bottom:48px"></div>
+
+  <!-- TRAINING TOPICS -->
+  <div class="section-head">
+    <h2>Topics <span class="accent">covered</span> in the AI Automation training</h2>
+    <div class="hint">Google Workspace · Gemini · Apps Script · AppSheet</div>
+  </div>
+  <div class="topics-grid">
+    <div class="topic">
+      <div class="topic-num">— 01</div>
+      <h4>AI <span class="hl">fundamentals</span> &amp; prompt craft</h4>
+      <p>What LLMs are, how Gemini reasons, and the anatomy of a good prompt. Role-priming, few-shot examples, and grounding with DBL Group context for accurate, on-brand output.</p>
+      <div class="tags"><span class="tag">PROMPTING</span><span class="tag">GROUNDING</span><span class="tag">GUARDRAILS</span></div>
+    </div>
+    <div class="topic">
+      <div class="topic-num">— 02</div>
+      <h4>Gemini in <span class="hl">Google Workspace</span></h4>
+      <p>The "Help me write" / "Help me organise" features inside Gmail, Docs, Sheets, Slides and Meet. Drafting emails, summarising threads, building tables, and translating Bangla⇄English — without leaving Workspace.</p>
+      <div class="tags"><span class="tag">GMAIL</span><span class="tag">DOCS</span><span class="tag">SHEETS</span><span class="tag">SLIDES</span><span class="tag">MEET</span></div>
+    </div>
+    <div class="topic">
+      <div class="topic-num">— 03</div>
+      <h4>Smart spreadsheets with <span class="hl">Gemini in Sheets</span></h4>
+      <p>Generate formulas in plain English, auto-categorise rows, extract data from text columns, and build pivots &amp; charts on demand. Replaces hours of manual sheet-wrangling for finance, IE and merchandising teams.</p>
+      <div class="tags"><span class="tag">SHEETS</span><span class="tag">FORMULAS</span><span class="tag">PIVOTS</span></div>
+    </div>
+    <div class="topic">
+      <div class="topic-num">— 04</div>
+      <h4><span class="hl">NotebookLM</span> for source-grounded research</h4>
+      <p>Upload SOPs, audit reports, buyer manuals or technical packs — ask questions, get answers cited to the exact page. Audio overviews for on-the-go briefings. Perfect for compliance, quality and merchandising teams.</p>
+      <div class="tags"><span class="tag">NOTEBOOKLM</span><span class="tag">CITATIONS</span><span class="tag">AUDIO</span></div>
+    </div>
+    <div class="topic">
+      <div class="topic-num">— 05</div>
+      <h4>Gmail <span class="hl">triage &amp; smart reply</span></h4>
+      <p>Help-me-write for replies, summarise long buyer threads, smart-categorise inbox, and use Gemini side-panel to pull context from related Drive files while drafting.</p>
+      <div class="tags"><span class="tag">GMAIL</span><span class="tag">SIDE-PANEL</span><span class="tag">DRIVE-CONTEXT</span></div>
+    </div>
+    <div class="topic">
+      <div class="topic-num">— 06</div>
+      <h4>Google Meet: <span class="hl">take notes for me</span></h4>
+      <p>Auto-transcription, AI minutes, and action items posted to Drive after the call. Recap missed segments without watching the full recording. Now standard for HoD and buyer meetings.</p>
+      <div class="tags"><span class="tag">MEET</span><span class="tag">MINUTES</span><span class="tag">ACTION-ITEMS</span></div>
+    </div>
+    <div class="topic">
+      <div class="topic-num">— 07</div>
+      <h4>Automation with <span class="hl">Apps Script</span></h4>
+      <p>JavaScript on top of Workspace. Triggers on new Gmail, edits in Sheets, time-based jobs. Add Gemini API calls inside Apps Script to read PDFs, classify emails, generate reports — all on Google's infra, no third-party connector fees.</p>
+      <div class="tags"><span class="tag">APPS-SCRIPT</span><span class="tag">TRIGGERS</span><span class="tag">GEMINI-API</span></div>
+    </div>
+    <div class="topic">
+      <div class="topic-num">— 08</div>
+      <h4>No-code apps with <span class="hl">AppSheet</span></h4>
+      <p>Build mobile/web apps directly off a Google Sheet — production logging, store requisitions, safety incidents, audit checklists. Workflows, role-based access, offline mode, all without code.</p>
+      <div class="tags"><span class="tag">APPSHEET</span><span class="tag">MOBILE</span><span class="tag">WORKFLOWS</span></div>
+    </div>
+    <div class="topic">
+      <div class="topic-num">— 09</div>
+      <h4>Live dashboards with <span class="hl">Looker Studio</span></h4>
+      <p>Connect Sheets, BigQuery or Drive sources. Build executive dashboards that refresh automatically — daily production, LC status, training reach, compliance readiness — all shareable with one link.</p>
+      <div class="tags"><span class="tag">LOOKER-STUDIO</span><span class="tag">SHEETS-DS</span><span class="tag">BIGQUERY</span></div>
+    </div>
+    <div class="topic">
+      <div class="topic-num">— 10</div>
+      <h4>Information security &amp; <span class="hl">responsible use</span></h4>
+      <p>Workspace data-protection settings for Gemini, what stays inside the tenant, what never to paste into public AIs, hallucination checks, and DBL Group's acceptable-use policy.</p>
+      <div class="tags"><span class="tag">PRIVACY</span><span class="tag">POLICY</span><span class="tag">VERIFY</span></div>
+    </div>
+    <div class="topic">
+      <div class="topic-num">— 11</div>
+      <h4>Slides &amp; visuals with <span class="hl">Gemini</span></h4>
+      <p>Generate slide decks from a one-line brief in Google Slides, create images with Imagen, and use the Gemini app for quick mockups, social visuals and merchandiser pitch sheets.</p>
+      <div class="tags"><span class="tag">SLIDES</span><span class="tag">IMAGEN</span><span class="tag">GEMINI-APP</span></div>
+    </div>
+    <div class="topic">
+      <div class="topic-num">— 12</div>
+      <h4>Builders' track: <span class="hl">Gemini API</span> &amp; AI Studio</h4>
+      <p>For the IT &amp; Enterprise Systems team — calling Gemini from Apps Script and AppSheet, multimodal inputs (PDF, image, audio), structured-output mode, and prototyping in Google AI Studio before shipping.</p>
+      <div class="tags"><span class="tag">AI-STUDIO</span><span class="tag">GEMINI-API</span><span class="tag">STRUCTURED</span></div>
+    </div>
+  </div>
+
+  <!-- AUTOMATION USE CASES (hidden until 'Use Cases' KPI is clicked) -->
+  <div class="section-reveal" id="useCasesReveal">
+  <div class="section-head">
+    <h2>Automation <span class="accent">use-cases</span> built on top</h2>
+    <div class="hint">Apps Script · AppSheet · Gemini API · Looker Studio</div>
+  </div>
+  <div class="auto-grid">
+
+    <div class="auto-card">
+      <div class="auto-icon i1">M</div>
+      <div class="auto-body">
+        <h4>Merchandiser auto-report on Work Order</h4>
+        <div class="flow">GMAIL TRIGGER <span class="arrow">→</span> APPS SCRIPT + GEMINI API <span class="arrow">→</span> SHEET ROW + MAIL TO MERCHANDISER</div>
+        <p>An Apps Script trigger watches a buyer-orders Gmail label. When a Work Order PDF arrives, Gemini API extracts style, qty, FOB, ship date and lead time as structured JSON, the script appends a row to the master Google Sheet, and emails the assigned merchandiser a clean summary — zero manual entry.</p>
+      </div>
+      <div class="auto-tag">SOURCING · MERCH</div>
+    </div>
+
+    <div class="auto-card">
+      <div class="auto-icon i2">L</div>
+      <div class="auto-body">
+        <h4>Bank LC → Sheet → Looker Studio dashboard</h4>
+        <div class="flow">GMAIL <span class="arrow">→</span> APPS SCRIPT + GEMINI <span class="arrow">→</span> GOOGLE SHEET <span class="arrow">→</span> LOOKER STUDIO</div>
+        <p>LC PDFs from the bank are read by Apps Script, parsed by Gemini API for LC number, value, applicant, beneficiary, expiry and tenor. Data lands in a Google Sheet that feeds a live Looker Studio dashboard — finance and commercial see LC status, tenor, and expiry alerts in real-time.</p>
+      </div>
+      <div class="auto-tag">FINANCE · COMMERCIAL</div>
+    </div>
+
+    <div class="auto-card">
+      <div class="auto-icon i3">IT</div>
+      <div class="auto-body">
+        <h4>IT helpdesk ticket triage in AppSheet</h4>
+        <div class="flow">GOOGLE FORM / GMAIL <span class="arrow">→</span> SHEET <span class="arrow">→</span> APPSHEET APP <span class="arrow">→</span> ENGINEER ASSIGN</div>
+        <p>Users submit IT requests via a Google Form (or Gmail to a shared label). Apps Script + Gemini classifies the issue (network, ERP, hardware, access). AppSheet surfaces it as a mobile ticket app for IT engineers, with status, SLA timer, and auto-replies to the requester.</p>
+      </div>
+      <div class="auto-tag">IT GOVERNANCE</div>
+    </div>
+
+    <div class="auto-card">
+      <div class="auto-icon i4">P</div>
+      <div class="auto-body">
+        <h4>Daily production &amp; efficiency report</h4>
+        <div class="flow">ERP EXPORT <span class="arrow">→</span> SHEET <span class="arrow">→</span> APPS SCRIPT + GEMINI <span class="arrow">→</span> GMAIL / CHAT</div>
+        <p>A time-based Apps Script trigger pulls yesterday's output, efficiency, defects and downtime into a Google Sheet. Gemini summarises the highlights into a one-page brief, sent to plant leadership over Gmail and Google Chat — every morning at 8am, no human intervention.</p>
+      </div>
+      <div class="auto-tag">PRODUCTION · IE</div>
+    </div>
+
+    <div class="auto-card">
+      <div class="auto-icon i5">QC</div>
+      <div class="auto-body">
+        <h4>Quality defect alert &amp; CAPA draft</h4>
+        <div class="flow">QC SHEET <span class="arrow">→</span> APPS SCRIPT WATCH <span class="arrow">→</span> GEMINI CAPA DRAFT <span class="arrow">→</span> EMAIL</div>
+        <p>Apps Script watches the QC log Sheet on every edit. When defect rate breaches threshold for a style or line, an alert fires to the QC head and Gemini drafts a starter CAPA using historical patterns from prior runs of the same style — pre-filled, ready to refine.</p>
+      </div>
+      <div class="auto-tag">QUALITY · RQS</div>
+    </div>
+
+    <div class="auto-card">
+      <div class="auto-icon i6">S</div>
+      <div class="auto-body">
+        <h4>Store reorder app on AppSheet</h4>
+        <div class="flow">STORE SHEET <span class="arrow">→</span> APPSHEET <span class="arrow">→</span> PR DRAFT EMAIL TO SOURCING</div>
+        <p>Store keepers update stock from the AppSheet mobile app. When fabric, accessories or consumables dip below the reorder point, AppSheet auto-generates a Purchase Requisition draft and emails it to the sourcing manager via Apps Script — approval comes back into the same app.</p>
+      </div>
+      <div class="auto-tag">STORE · SOURCING</div>
+    </div>
+
+    <div class="auto-card">
+      <div class="auto-icon i7">HR</div>
+      <div class="auto-body">
+        <h4>HR onboarding &amp; document chase</h4>
+        <div class="flow">NEW-HIRE SHEET <span class="arrow">→</span> APPS SCRIPT REMINDERS <span class="arrow">→</span> APPSHEET CHECKLIST</div>
+        <p>On hire, Apps Script generates a personalised checklist in a Google Doc, schedules orientation in Calendar, and sends Gmail/SMS reminders for pending NID, bank and medical documents. AppSheet gives HR a live mobile view of completion status across all new joiners.</p>
+      </div>
+      <div class="auto-tag">HR · ADMIN</div>
+    </div>
+
+    <div class="auto-card">
+      <div class="auto-icon i8">C</div>
+      <div class="auto-body">
+        <h4>Compliance audit calendar &amp; nudges</h4>
+        <div class="flow">CALENDAR <span class="arrow">→</span> APPS SCRIPT <span class="arrow">→</span> GEMINI CHECKLIST <span class="arrow">→</span> EMAIL</div>
+        <p>Tracks BSCI, Sedex, Higg and buyer-specific audits in Google Calendar. Apps Script sends countdown reminders, and Gemini generates a readiness checklist tailored to the upcoming audit's known focus areas — delivered to compliance &amp; HoDs on schedule.</p>
+      </div>
+      <div class="auto-tag">COMPLIANCE</div>
+    </div>
+
+    <div class="auto-card">
+      <div class="auto-icon i1">F</div>
+      <div class="auto-body">
+        <h4>Vendor invoice processing</h4>
+        <div class="flow">GMAIL <span class="arrow">→</span> GEMINI MULTIMODAL <span class="arrow">→</span> SHEET 3-WAY MATCH <span class="arrow">→</span> ERP</div>
+        <p>Vendor invoices land in a Gmail label. Gemini API reads the PDF directly (multimodal), extracts header and line items, Apps Script does a three-way match against PO and GRN sheets, and posts clean entries to the ERP. Mismatches are flagged in an AppSheet review queue.</p>
+      </div>
+      <div class="auto-tag">ACCOUNTS &amp; FINANCE</div>
+    </div>
+
+    <div class="auto-card">
+      <div class="auto-icon i2">MK</div>
+      <div class="auto-body">
+        <h4>Marketing content with Gemini &amp; Slides</h4>
+        <div class="flow">CAMPAIGN BRIEF <span class="arrow">→</span> GEMINI + IMAGEN <span class="arrow">→</span> SLIDES + SHEET SCHEDULE</div>
+        <p>One brief produces caption variants, Imagen-generated visuals, and a posting schedule across Facebook, Instagram and LinkedIn — assembled in Google Slides for review. Apps Script logs performance back into the same Sheet weekly.</p>
+      </div>
+      <div class="auto-tag">MARKETING</div>
+    </div>
+
+    <div class="auto-card">
+      <div class="auto-icon i3">SH</div>
+      <div class="auto-body">
+        <h4>Shipment tracking &amp; buyer ETA notifier</h4>
+        <div class="flow">FORWARDER EMAIL/API <span class="arrow">→</span> SHEET <span class="arrow">→</span> APPS SCRIPT + GEMINI <span class="arrow">→</span> BUYER MAIL</div>
+        <p>Apps Script ingests vessel/flight updates from the forwarder into a Sheet. When ETA changes, Gemini drafts a polite update in the buyer's preferred tone, sends it from the merchandiser's mailbox, and refreshes the shipment dashboard in Looker Studio.</p>
+      </div>
+      <div class="auto-tag">COMMERCIAL · LOGISTICS</div>
+    </div>
+
+    <div class="auto-card">
+      <div class="auto-icon i4">SF</div>
+      <div class="auto-body">
+        <h4>Safety incident reporter on AppSheet</h4>
+        <div class="flow">APPSHEET FORM <span class="arrow">→</span> SHEET <span class="arrow">→</span> GEMINI CATEGORISE <span class="arrow">→</span> LOOKER STUDIO</div>
+        <p>Workers and supervisors log incidents (or near-misses) via the AppSheet mobile app — works offline, with photo upload. Gemini tags severity and category. Looker Studio surfaces hot-spots by area, shift and root cause so safety teams can act before it escalates.</p>
+      </div>
+      <div class="auto-tag">SAFETY · OHS</div>
+    </div>
+
+    <div class="auto-card">
+      <div class="auto-icon i5">TR</div>
+      <div class="auto-body">
+        <h4>Training reach &amp; certification tracker</h4>
+        <div class="flow">ATTENDANCE SHEET <span class="arrow">→</span> APPS SCRIPT <span class="arrow">→</span> CERTIFICATE PDF + EMAIL <span class="arrow">→</span> THIS DASHBOARD</div>
+        <p>The same dataset that powers this dashboard. Apps Script generates a personalised certificate PDF for each completer (from a Google Slides template), emails it via Gmail, and keeps the Looker Studio version in sync with this view — a closed loop on training delivery.</p>
+      </div>
+      <div class="auto-tag">L&amp;D · HR</div>
+    </div>
+
+  </div>
+  </div><!-- /useCasesReveal -->
+
+  <!-- DBL DATA LAKEHOUSE (hidden until 'DBL Data Lakehouse' KPI is clicked) -->
+  <div class="section-reveal" id="lakeReveal">
+    <div class="section-head">
+      <h2>DBL <span class="accent">Data Lake &amp; Warehouse</span> — POC status</h2>
+      <div class="hint">Oracle &amp; MS SQL → Datastream → BigQuery</div>
+    </div>
+    <div class="lake-status-grid" id="lakeStatusGrid"></div>
+    <div class="lake-progress-panel" id="lakeProgressPanel"></div>
+    <div id="lakeGroups"></div>
+  </div>
+
+  <!-- DRILL-DOWN DETAIL PANEL -->
+  <div class="modal-bg" id="drillDownBg">
+    <div class="modal" id="drillDownModal" style="max-width:1000px;">
+      <div class="modal-head">
+        <div>
+          <div class="eyebrow" id="drillDownEyebrow">—</div>
+          <h2 id="drillDownTitle">—</h2>
+        </div>
+        <button class="modal-close" id="drillDownClose" aria-label="Close">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="2" y1="2" x2="12" y2="12"/><line x1="12" y1="2" x2="2" y2="12"/></svg>
+        </button>
+      </div>
+      <div class="modal-body" id="drillDownBody"></div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="foot">
+    <div>// DBL GROUP · AI ADAPTATION &amp; DATA LAKE &amp; WAREHOUSE · DASHBOARD v1.3</div>
+    <div id="footStat"></div>
+  </footer>
+
+  <!-- BACK TO TOP BUTTON -->
+  <button id="backToTopBtn" class="back-to-top-btn" aria-label="Back to top">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="18 15 12 9 6 15"></polyline>
+    </svg>
+  </button>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal" id="modal">
+    <div class="modal-head">
+      <div>
+        <div class="eyebrow">Department detail</div>
+        <h2 id="modalTitle">—</h2>
+        <div class="meta" id="modalMeta">—</div>
+      </div>
+      <button class="modal-close" id="modalClose" aria-label="Close">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="2" y1="2" x2="12" y2="12"/><line x1="12" y1="2" x2="2" y2="12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <div class="t-title" id="toastTitle">Loaded</div>
+  <div class="t-body" id="toastBody"></div>
+</div>
+
+<script>
+/* ============= EMBEDDED INITIAL DATA ============= */
+window.__INITIAL_DATA__ = [{"Date": "2026-04-25", "Location": "Jinnat Complex", "Trainer's Employee ID": 15103328, "Trainer Name": "Shamsuddin Ibna Nurul Huda", "Trainer Designation": "Manager", "Trainer Dept.": "IT Governance", "Participant's ID": 15109502, "Participant's Name": "M. Naimul Hoque", "Participant's Designation": "General Manager", "Participant Dept.": "Plant HR", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Jinnat Complex", "Trainer's Employee ID": 15103328, "Trainer Name": "Shamsuddin Ibna Nurul Huda", "Trainer Designation": "Manager", "Trainer Dept.": "IT Governance", "Participant's ID": 15100483, "Participant's Name": "Md. Mahfuzur Rahman", "Participant's Designation": "General Manager", "Participant Dept.": "Compliance", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Jinnat Complex", "Trainer's Employee ID": 15103328, "Trainer Name": "Shamsuddin Ibna Nurul Huda", "Trainer Designation": "Manager", "Trainer Dept.": "IT Governance", "Participant's ID": 15100594, "Participant's Name": "Mohammad Abul Hashem Patwary", "Participant's Designation": "Additional General Manager", "Participant Dept.": "Plant HR", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Jinnat Complex", "Trainer's Employee ID": 15103328, "Trainer Name": "Shamsuddin Ibna Nurul Huda", "Trainer Designation": "Manager", "Trainer Dept.": "IT Governance", "Participant's ID": 15101115, "Participant's Name": "Nur Md Golam Haider", "Participant's Designation": "Additional General Manager", "Participant Dept.": "Admin, Safety and Security", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Jinnat Complex", "Trainer's Employee ID": 15103328, "Trainer Name": "Shamsuddin Ibna Nurul Huda", "Trainer Designation": "Manager", "Trainer Dept.": "IT Governance", "Participant's ID": 15100473, "Participant's Name": "Md. Sogir Ahmed", "Participant's Designation": "Deputy General Manager", "Participant Dept.": "Quality", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Jinnat Complex", "Trainer's Employee ID": 15103328, "Trainer Name": "Shamsuddin Ibna Nurul Huda", "Trainer Designation": "Manager", "Trainer Dept.": "IT Governance", "Participant's ID": 15100477, "Participant's Name": "Shahjahan", "Participant's Designation": "Deputy General Manager", "Participant Dept.": "Quality", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Jinnat Complex", "Trainer's Employee ID": 15103328, "Trainer Name": "Shamsuddin Ibna Nurul Huda", "Trainer Designation": "Manager", "Trainer Dept.": "IT Governance", "Participant's ID": 15105994, "Participant's Name": "Mohammad Najmul Hasan", "Participant's Designation": "Deputy General Manager", "Participant Dept.": "Production", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Jinnat Complex", "Trainer's Employee ID": 15103328, "Trainer Name": "Shamsuddin Ibna Nurul Huda", "Trainer Designation": "Manager", "Trainer Dept.": "IT Governance", "Participant's ID": 15107407, "Participant's Name": "Md. Abdul Hannan", "Participant's Designation": "Deputy General Manager", "Participant Dept.": "Quality", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Jinnat Complex", "Trainer's Employee ID": 15103328, "Trainer Name": "Shamsuddin Ibna Nurul Huda", "Trainer Designation": "Manager", "Trainer Dept.": "IT Governance", "Participant's ID": 15103764, "Participant's Name": "Md. Salim Juboraj", "Participant's Designation": "Deputy General Manager", "Participant Dept.": "Store", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Jinnat Complex", "Trainer's Employee ID": 15103328, "Trainer Name": "Shamsuddin Ibna Nurul Huda", "Trainer Designation": "Manager", "Trainer Dept.": "IT Governance", "Participant's ID": 15100468, "Participant's Name": "Bishwajit Saha Krishna", "Participant's Designation": "Assistant General Manager", "Participant Dept.": "RQS", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Jinnat Complex", "Trainer's Employee ID": 15103328, "Trainer Name": "Shamsuddin Ibna Nurul Huda", "Trainer Designation": "Manager", "Trainer Dept.": "IT Governance", "Participant's ID": 15100471, "Participant's Name": "Md. Yusuf Harun", "Participant's Designation": "Assistant General Manager", "Participant Dept.": "Sourcing", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Jinnat Complex", "Trainer's Employee ID": 15103328, "Trainer Name": "Shamsuddin Ibna Nurul Huda", "Trainer Designation": "Manager", "Trainer Dept.": "IT Governance", "Participant's ID": 15100488, "Participant's Name": "Md. Rezaul Islam", "Participant's Designation": "Assistant General Manager", "Participant Dept.": "MPD", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Jinnat Complex", "Trainer's Employee ID": 15103328, "Trainer Name": "Shamsuddin Ibna Nurul Huda", "Trainer Designation": "Manager", "Trainer Dept.": "IT Governance", "Participant's ID": 15106932, "Participant's Name": "Md. Mahabub", "Participant's Designation": "Assistant General Manager", "Participant Dept.": "Industrial Engineering", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Jinnat Complex", "Trainer's Employee ID": 15103328, "Trainer Name": "Shamsuddin Ibna Nurul Huda", "Trainer Designation": "Manager", "Trainer Dept.": "IT Governance", "Participant's ID": 15100575, "Participant's Name": "Md. Abdul Mazed Mondol", "Participant's Designation": "Assistant General Manager", "Participant Dept.": "Utility", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Jinnat Complex", "Trainer's Employee ID": 15103328, "Trainer Name": "Shamsuddin Ibna Nurul Huda", "Trainer Designation": "Manager", "Trainer Dept.": "IT Governance", "Participant's ID": 15100501, "Participant's Name": "Mohammad Azizur Rahman", "Participant's Designation": "Senior Manager", "Participant Dept.": "Accounts and Finance", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Jinnat Complex", "Trainer's Employee ID": 15103328, "Trainer Name": "Shamsuddin Ibna Nurul Huda", "Trainer Designation": "Manager", "Trainer Dept.": "IT Governance", "Participant's ID": 15103890, "Participant's Name": "Md. Zennat Ali", "Participant's Designation": "Senior Manager", "Participant Dept.": "Compliance", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Jinnat Complex", "Trainer's Employee ID": 15103328, "Trainer Name": "Shamsuddin Ibna Nurul Huda", "Trainer Designation": "Manager", "Trainer Dept.": "IT Governance", "Participant's ID": 15101612, "Participant's Name": "Md. Furkan Uddin Jewel", "Participant's Designation": "Senior Manager", "Participant Dept.": "Production Planning", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Jinnat Complex", "Trainer's Employee ID": 15103328, "Trainer Name": "Shamsuddin Ibna Nurul Huda", "Trainer Designation": "Manager", "Trainer Dept.": "IT Governance", "Participant's ID": 15100474, "Participant's Name": "Ajit Chandra Sarker", "Participant's Designation": "Manager", "Participant Dept.": "RQS", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Jinnat Complex", "Trainer's Employee ID": 15103328, "Trainer Name": "Shamsuddin Ibna Nurul Huda", "Trainer Designation": "Manager", "Trainer Dept.": "IT Governance", "Participant's ID": 15100535, "Participant's Name": "Md. Amjad Hossain", "Participant's Designation": "Manager", "Participant Dept.": "Quality", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Jinnat Complex", "Trainer's Employee ID": 15103328, "Trainer Name": "Shamsuddin Ibna Nurul Huda", "Trainer Designation": "Manager", "Trainer Dept.": "IT Governance", "Participant's ID": 15100577, "Participant's Name": "Md. Motiur Rahman", "Participant's Designation": "Manager", "Participant Dept.": "MPD", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Jinnat Complex", "Trainer's Employee ID": 15103328, "Trainer Name": "Shamsuddin Ibna Nurul Huda", "Trainer Designation": "Manager", "Trainer Dept.": "IT Governance", "Participant's ID": 15100603, "Participant's Name": "Md. Masudur Rahman", "Participant's Designation": "Manager", "Participant Dept.": "Industrial Engineering", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Jinnat Complex", "Trainer's Employee ID": 15103328, "Trainer Name": "Shamsuddin Ibna Nurul Huda", "Trainer Designation": "Manager", "Trainer Dept.": "IT Governance", "Participant's ID": 15100686, "Participant's Name": "Abu Bakar Siddique", "Participant's Designation": "Manager", "Participant Dept.": "Production", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Jinnat Complex", "Trainer's Employee ID": 15103328, "Trainer Name": "Shamsuddin Ibna Nurul Huda", "Trainer Designation": "Manager", "Trainer Dept.": "IT Governance", "Participant's ID": 15100701, "Participant's Name": "Md. Zahidur Rahman", "Participant's Designation": "Manager", "Participant Dept.": "Industrial Engineering", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Jinnat Complex", "Trainer's Employee ID": 15103328, "Trainer Name": "Shamsuddin Ibna Nurul Huda", "Trainer Designation": "Manager", "Trainer Dept.": "IT Governance", "Participant's ID": 15100726, "Participant's Name": "Md. Jahirul Hoque", "Participant's Designation": "Deputy Manager", "Participant Dept.": "MPD", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Jinnat Complex", "Trainer's Employee ID": 15103328, "Trainer Name": "Shamsuddin Ibna Nurul Huda", "Trainer Designation": "Manager", "Trainer Dept.": "IT Governance", "Participant's ID": 15100746, "Participant's Name": "Shakil Md. Sharif", "Participant's Designation": "Deputy Manager", "Participant Dept.": "Production", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Jinnat Complex", "Trainer's Employee ID": 15103328, "Trainer Name": "Shamsuddin Ibna Nurul Huda", "Trainer Designation": "Manager", "Trainer Dept.": "IT Governance", "Participant's ID": 15101042, "Participant's Name": "Md. Mahamudul Karim Nirjhor", "Participant's Designation": "Deputy Manager", "Participant Dept.": "MPD", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Jinnat Complex", "Trainer's Employee ID": 15103328, "Trainer Name": "Shamsuddin Ibna Nurul Huda", "Trainer Designation": "Manager", "Trainer Dept.": "IT Governance", "Participant's ID": 15107987, "Participant's Name": "Md. Biplab Khandker", "Participant's Designation": "Deputy Manager", "Participant Dept.": "Quality", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Jinnat Complex", "Trainer's Employee ID": 15103328, "Trainer Name": "Shamsuddin Ibna Nurul Huda", "Trainer Designation": "Manager", "Trainer Dept.": "IT Governance", "Participant's ID": 15100758, "Participant's Name": "Md. Quamrul Hasan", "Participant's Designation": "Assistant Manager", "Participant Dept.": "Production", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Jinnat Complex", "Trainer's Employee ID": 15103328, "Trainer Name": "Shamsuddin Ibna Nurul Huda", "Trainer Designation": "Manager", "Trainer Dept.": "IT Governance", "Participant's ID": 15100810, "Participant's Name": "Md. Zakaria", "Participant's Designation": "Assistant Manager", "Participant Dept.": "Production", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Jinnat Complex", "Trainer's Employee ID": 15103328, "Trainer Name": "Shamsuddin Ibna Nurul Huda", "Trainer Designation": "Manager", "Trainer Dept.": "IT Governance", "Participant's ID": 15100822, "Participant's Name": "Moniruzzaman", "Participant's Designation": "Assistant Manager", "Participant Dept.": "Sourcing", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Jinnat Complex", "Trainer's Employee ID": 15103328, "Trainer Name": "Shamsuddin Ibna Nurul Huda", "Trainer Designation": "Manager", "Trainer Dept.": "IT Governance", "Participant's ID": 15100943, "Participant's Name": "Md. Sakib Istiaque", "Participant's Designation": "Assistant Manager", "Participant Dept.": "Sourcing", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Jinnat Complex", "Trainer's Employee ID": 15103328, "Trainer Name": "Shamsuddin Ibna Nurul Huda", "Trainer Designation": "Manager", "Trainer Dept.": "IT Governance", "Participant's ID": 15100959, "Participant's Name": "Mohammad Ali", "Participant's Designation": "Assistant Manager", "Participant Dept.": "RQS", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Jinnat Complex", "Trainer's Employee ID": 15103328, "Trainer Name": "Shamsuddin Ibna Nurul Huda", "Trainer Designation": "Manager", "Trainer Dept.": "IT Governance", "Participant's ID": 15101957, "Participant's Name": "Md. Jahidul Islam", "Participant's Designation": "Assistant Manager", "Participant Dept.": "RQS", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Jinnat Complex", "Trainer's Employee ID": 15103328, "Trainer Name": "Shamsuddin Ibna Nurul Huda", "Trainer Designation": "Manager", "Trainer Dept.": "IT Governance", "Participant's ID": 15109040, "Participant's Name": "Md. Shoeb Hossain", "Participant's Designation": "Assistant Manager", "Participant Dept.": "Sourcing", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Jinnat Complex", "Trainer's Employee ID": 15103328, "Trainer Name": "Shamsuddin Ibna Nurul Huda", "Trainer Designation": "Manager", "Trainer Dept.": "IT Governance", "Participant's ID": 15103373, "Participant's Name": "Md. Safiqul Islam", "Participant's Designation": "Senior Merchandiser", "Participant Dept.": "Sourcing", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Jinnat Complex", "Trainer's Employee ID": 15103328, "Trainer Name": "Shamsuddin Ibna Nurul Huda", "Trainer Designation": "Manager", "Trainer Dept.": "IT Governance", "Participant's ID": 15105822, "Participant's Name": "Safkat Nabil", "Participant's Designation": "Senior Merchandiser", "Participant Dept.": "Sourcing", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Jinnat Complex", "Trainer's Employee ID": 15103328, "Trainer Name": "Shamsuddin Ibna Nurul Huda", "Trainer Designation": "Manager", "Trainer Dept.": "IT Governance", "Participant's ID": 15106376, "Participant's Name": "Md. Touhidur Rahman", "Participant's Designation": "Senior Merchandiser", "Participant Dept.": "Sourcing", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Jinnat Complex", "Trainer's Employee ID": 15103328, "Trainer Name": "Shamsuddin Ibna Nurul Huda", "Trainer Designation": "Manager", "Trainer Dept.": "IT Governance", "Participant's ID": 15108669, "Participant's Name": "Adnan Sanzid Ali", "Participant's Designation": "Assistant Officer", "Participant Dept.": "Production", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Jinnat Complex", "Trainer's Employee ID": 15103328, "Trainer Name": "Shamsuddin Ibna Nurul Huda", "Trainer Designation": "Manager", "Trainer Dept.": "IT Governance", "Participant's ID": 15103602, "Participant's Name": "Md. Monirul Islam", "Participant's Designation": "Senior Merchandiser", "Participant Dept.": "Sourcing", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Jinnat Complex", "Trainer's Employee ID": 15103328, "Trainer Name": "Shamsuddin Ibna Nurul Huda", "Trainer Designation": "Manager", "Trainer Dept.": "IT Governance", "Participant's ID": 15105435, "Participant's Name": "Md. Atikur Rahman", "Participant's Designation": "Senior Officer", "Participant Dept.": "GPQ", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Jinnat Complex", "Trainer's Employee ID": 15103328, "Trainer Name": "Shamsuddin Ibna Nurul Huda", "Trainer Designation": "Manager", "Trainer Dept.": "IT Governance", "Participant's ID": 15105375, "Participant's Name": "Syed Shohidul Islam", "Participant's Designation": "Senior Officer", "Participant Dept.": "GPQ", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Jinnat Complex", "Trainer's Employee ID": 15103328, "Trainer Name": "Shamsuddin Ibna Nurul Huda", "Trainer Designation": "Manager", "Trainer Dept.": "IT Governance", "Participant's ID": 15100496, "Participant's Name": "Abul Kashem Sarder", "Participant's Designation": "Assistant General Manager", "Participant Dept.": "Plant Admin", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Jinnat Complex", "Trainer's Employee ID": 15103328, "Trainer Name": "Shamsuddin Ibna Nurul Huda", "Trainer Designation": "Manager", "Trainer Dept.": "IT Governance", "Participant's ID": 15100777, "Participant's Name": "Chacheng Oo Rakhaine", "Participant's Designation": "Deputy Manager", "Participant Dept.": "IT Infrastructure", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Mymun Complex", "Trainer's Employee ID": 15101130, "Trainer Name": "Md. Atiqur Rahman", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure and Operations", "Participant's ID": 15108145, "Participant's Name": "Syed Anwarul Alam", "Participant's Designation": "Chief Production Officer", "Participant Dept.": "Production", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Mymun Complex", "Trainer's Employee ID": 15101130, "Trainer Name": "Md. Atiqur Rahman", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure and Operations", "Participant's ID": 15109117, "Participant's Name": "Ismail Hossain", "Participant's Designation": "Senior General Manager", "Participant Dept.": "Operations", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Mymun Complex", "Trainer's Employee ID": 15101130, "Trainer Name": "Md. Atiqur Rahman", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure and Operations", "Participant's ID": 15106155, "Participant's Name": "Kazi Ekramul Huq", "Participant's Designation": "General Manager", "Participant Dept.": "Plant HR", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Mymun Complex", "Trainer's Employee ID": 15101130, "Trainer Name": "Md. Atiqur Rahman", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure and Operations", "Participant's ID": 15106769, "Participant's Name": "Md. Saiful Islam", "Participant's Designation": "General Manager", "Participant Dept.": "Admin, Safety and Security", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Mymun Complex", "Trainer's Employee ID": 15101130, "Trainer Name": "Md. Atiqur Rahman", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure and Operations", "Participant's ID": 15108468, "Participant's Name": "Mohammad Hasib Mahbub", "Participant's Designation": "General Manager", "Participant Dept.": "Production", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Mymun Complex", "Trainer's Employee ID": 15101130, "Trainer Name": "Md. Atiqur Rahman", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure and Operations", "Participant's ID": 15101297, "Participant's Name": "Shah Imtiaz Ahsan", "Participant's Designation": "Additional General Manager", "Participant Dept.": "Production", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Mymun Complex", "Trainer's Employee ID": 15101130, "Trainer Name": "Md. Atiqur Rahman", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure and Operations", "Participant's ID": 15100728, "Participant's Name": "Mizanur Rahman", "Participant's Designation": "Deputy General Manager", "Participant Dept.": "Quality", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Mymun Complex", "Trainer's Employee ID": 15101130, "Trainer Name": "Md. Atiqur Rahman", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure and Operations", "Participant's ID": 15101128, "Participant's Name": "Md. Sanaullah Sarker", "Participant's Designation": "Deputy General Manager", "Participant Dept.": "Lab", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Mymun Complex", "Trainer's Employee ID": 15101130, "Trainer Name": "Md. Atiqur Rahman", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure and Operations", "Participant's ID": 15101136, "Participant's Name": "Md. Adnan Khan", "Participant's Designation": "Deputy General Manager", "Participant Dept.": "Dyeing and Finishing", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Mymun Complex", "Trainer's Employee ID": 15101130, "Trainer Name": "Md. Atiqur Rahman", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure and Operations", "Participant's ID": 15101193, "Participant's Name": "Mohammad Isha Khan", "Participant's Designation": "Deputy General Manager", "Participant Dept.": "Dyeing and Finishing", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Mymun Complex", "Trainer's Employee ID": 15101130, "Trainer Name": "Md. Atiqur Rahman", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure and Operations", "Participant's ID": 15108774, "Participant's Name": "Gazi Md. Ali Zafar", "Participant's Designation": "Deputy General Manager", "Participant Dept.": "Inventory Management", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Mymun Complex", "Trainer's Employee ID": 15101130, "Trainer Name": "Md. Atiqur Rahman", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure and Operations", "Participant's ID": 15109412, "Participant's Name": "Pijush Kanti Dey", "Participant's Designation": "Deputy General Manager", "Participant Dept.": "Construction", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Mymun Complex", "Trainer's Employee ID": 15101130, "Trainer Name": "Md. Atiqur Rahman", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure and Operations", "Participant's ID": 15101157, "Participant's Name": "Md. Alamgir", "Participant's Designation": "Assistant General Manager", "Participant Dept.": "Plant HR", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Mymun Complex", "Trainer's Employee ID": 15101130, "Trainer Name": "Md. Atiqur Rahman", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure and Operations", "Participant's ID": 15101229, "Participant's Name": "Md. Monirul Islam", "Participant's Designation": "Assistant General Manager", "Participant Dept.": "Maintenance", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Mymun Complex", "Trainer's Employee ID": 15101130, "Trainer Name": "Md. Atiqur Rahman", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure and Operations", "Participant's ID": 15105216, "Participant's Name": "Md. Enamul Islam", "Participant's Designation": "Assistant General Manager", "Participant Dept.": "Maintenance", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Mymun Complex", "Trainer's Employee ID": 15101130, "Trainer Name": "Md. Atiqur Rahman", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure and Operations", "Participant's ID": 15101146, "Participant's Name": "Md. Abul Kashem", "Participant's Designation": "Senior Manager", "Participant Dept.": "Accounts and Finance", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Mymun Complex", "Trainer's Employee ID": 15101130, "Trainer Name": "Md. Atiqur Rahman", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure and Operations", "Participant's ID": 15101209, "Participant's Name": "Md. Ashraful Alam", "Participant's Designation": "Senior Manager", "Participant Dept.": "Finishing", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Mymun Complex", "Trainer's Employee ID": 15101130, "Trainer Name": "Md. Atiqur Rahman", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure and Operations", "Participant's ID": 15101320, "Participant's Name": "Md. Solaiman Hossain", "Participant's Designation": "Senior Manager", "Participant Dept.": "Production", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Mymun Complex", "Trainer's Employee ID": 15101130, "Trainer Name": "Md. Atiqur Rahman", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure and Operations", "Participant's ID": 15101328, "Participant's Name": "Md. Yasin", "Participant's Designation": "Senior Manager", "Participant Dept.": "Production", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Mymun Complex", "Trainer's Employee ID": 15101130, "Trainer Name": "Md. Atiqur Rahman", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure and Operations", "Participant's ID": 15101331, "Participant's Name": "Md. Yeahia Kabir", "Participant's Designation": "Senior Manager", "Participant Dept.": "Production", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Mymun Complex", "Trainer's Employee ID": 15101130, "Trainer Name": "Md. Atiqur Rahman", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure and Operations", "Participant's ID": 15101479, "Participant's Name": "Md. Shahadad Hossain", "Participant's Designation": "Senior Manager", "Participant Dept.": "Finishing", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Mymun Complex", "Trainer's Employee ID": 15101130, "Trainer Name": "Md. Atiqur Rahman", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure and Operations", "Participant's ID": 15101496, "Participant's Name": "Sharif Imran", "Participant's Designation": "Senior Manager", "Participant Dept.": "Dyeing", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Mymun Complex", "Trainer's Employee ID": 15101130, "Trainer Name": "Md. Atiqur Rahman", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure and Operations", "Participant's ID": 15101747, "Participant's Name": "Shamor Kumar Ghosh", "Participant's Designation": "Senior Manager", "Participant Dept.": "Compliance", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Mymun Complex", "Trainer's Employee ID": 15101130, "Trainer Name": "Md. Atiqur Rahman", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure and Operations", "Participant's ID": 15103661, "Participant's Name": "A.M Arafat Prince", "Participant's Designation": "Senior Manager", "Participant Dept.": "Quality Control", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Mymun Complex", "Trainer's Employee ID": 15101130, "Trainer Name": "Md. Atiqur Rahman", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure and Operations", "Participant's ID": 15106365, "Participant's Name": "Md. Afjal Hosen", "Participant's Designation": "Senior Manager", "Participant Dept.": "Maintenance", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Mymun Complex", "Trainer's Employee ID": 15101130, "Trainer Name": "Md. Atiqur Rahman", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure and Operations", "Participant's ID": 15107504, "Participant's Name": "Md.Marajul Islam Bhuiyan", "Participant's Designation": "Senior Manager", "Participant Dept.": "Production", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Mymun Complex", "Trainer's Employee ID": 15101130, "Trainer Name": "Md. Atiqur Rahman", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure and Operations", "Participant's ID": 15109389, "Participant's Name": "Md. Istiack Mahfuz", "Participant's Designation": "Senior Manager", "Participant Dept.": "Quality", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Mymun Complex", "Trainer's Employee ID": 15101130, "Trainer Name": "Md. Atiqur Rahman", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure and Operations", "Participant's ID": 15107791, "Participant's Name": "Md. Amirul Islam Fahad", "Participant's Designation": "Manager", "Participant Dept.": "Dyeing", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Mymun Complex", "Trainer's Employee ID": 15101130, "Trainer Name": "Md. Atiqur Rahman", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure and Operations", "Participant's ID": 15101148, "Participant's Name": "Mohammad Mahmudar Rahman", "Participant's Designation": "Manager", "Participant Dept.": "Plant Admin", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Mymun Complex", "Trainer's Employee ID": 15101130, "Trainer Name": "Md. Atiqur Rahman", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure and Operations", "Participant's ID": 15101212, "Participant's Name": "Mridha Md. Tarun", "Participant's Designation": "Manager", "Participant Dept.": "Washing", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Mymun Complex", "Trainer's Employee ID": 15101130, "Trainer Name": "Md. Atiqur Rahman", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure and Operations", "Participant's ID": 15101460, "Participant's Name": "Md. Saidur Rahman", "Participant's Designation": "Manager", "Participant Dept.": "Plant Admin", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Mymun Complex", "Trainer's Employee ID": 15101130, "Trainer Name": "Md. Atiqur Rahman", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure and Operations", "Participant's ID": 15108447, "Participant's Name": "Md. Al Raziul Islam", "Participant's Designation": "Manager", "Participant Dept.": "Marketing", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Mymun Complex", "Trainer's Employee ID": 15101130, "Trainer Name": "Md. Atiqur Rahman", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure and Operations", "Participant's ID": 15108615, "Participant's Name": "Chiranjit Debnath", "Participant's Designation": "Manager", "Participant Dept.": "Lab", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Mymun Complex", "Trainer's Employee ID": 15101130, "Trainer Name": "Md. Atiqur Rahman", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure and Operations", "Participant's ID": 15108689, "Participant's Name": "Mohammad Masudul Alam", "Participant's Designation": "Manager", "Participant Dept.": "Occupational Health and Safety", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Mymun Complex", "Trainer's Employee ID": 15101130, "Trainer Name": "Md. Atiqur Rahman", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure and Operations", "Participant's ID": 15109675, "Participant's Name": "Md. Fajlur Rahman Raju", "Participant's Designation": "Manager", "Participant Dept.": "Industrial Engineering", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Mymun Complex", "Trainer's Employee ID": 15101130, "Trainer Name": "Md. Atiqur Rahman", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure and Operations", "Participant's ID": 15101351, "Participant's Name": "Md. Shahiduzzaman", "Participant's Designation": "Senior Executive", "Participant Dept.": "Plant Admin", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Mymun Complex", "Trainer's Employee ID": 15101130, "Trainer Name": "Md. Atiqur Rahman", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure and Operations", "Participant's ID": 15100164, "Participant's Name": "Md. Sulaiman Hosen", "Participant's Designation": "Assistant Manager", "Participant Dept.": "Construction", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Mymun Complex", "Trainer's Employee ID": 15101130, "Trainer Name": "Md. Atiqur Rahman", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure and Operations", "Participant's ID": 15101519, "Participant's Name": "Md. Shakib Hossain", "Participant's Designation": "Assistant Manager", "Participant Dept.": "Plant HR", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Mymun Complex", "Trainer's Employee ID": 15101130, "Trainer Name": "Md. Atiqur Rahman", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure and Operations", "Participant's ID": 15107253, "Participant's Name": "Soyed Rasel", "Participant's Designation": "Territory Officer", "Participant Dept.": "Sales", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Mymun Complex", "Trainer's Employee ID": 15101130, "Trainer Name": "Md. Atiqur Rahman", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure and Operations", "Participant's ID": 15101319, "Participant's Name": "Md. Hasanuzzaman", "Participant's Designation": "Deputy Manager", "Participant Dept.": "Plant HR", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Mymun Complex", "Trainer's Employee ID": 15101130, "Trainer Name": "Md. Atiqur Rahman", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure and Operations", "Participant's ID": 15101184, "Participant's Name": "Nesar Ahmed Khan", "Participant's Designation": "Manager", "Participant Dept.": "Plant HR", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Mymun Complex", "Trainer's Employee ID": 15101130, "Trainer Name": "Md. Atiqur Rahman", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure and Operations", "Participant's ID": 15106020, "Participant's Name": "Monira Akter Jotty", "Participant's Designation": "Executive", "Participant Dept.": "Plant HR", "Gender  of Participant": "Female"}, {"Date": "2026-04-25", "Location": "Mymun Complex", "Trainer's Employee ID": 15101130, "Trainer Name": "Md. Atiqur Rahman", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure and Operations", "Participant's ID": 15101492, "Participant's Name": "Rony Saha", "Participant's Designation": "Senior Executive", "Participant Dept.": "Plant Admin", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Ceramics Plant", "Trainer's Employee ID": 15107550, "Trainer Name": "Md. Mehedi Hassan", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15108910, "Participant's Name": "Md. Hasinur Rahman", "Participant's Designation": "Deputy General Manager", "Participant Dept.": "Utility", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Ceramics Plant", "Trainer's Employee ID": 15107550, "Trainer Name": "Md. Mehedi Hassan", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15100433, "Participant's Name": "Md. Mamun Ar Rashid", "Participant's Designation": "Manager", "Participant Dept.": "Accounts and Finance", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Ceramics Plant", "Trainer's Employee ID": 15107550, "Trainer Name": "Md. Mehedi Hassan", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15109687, "Participant's Name": "Gazi Mostofa Fuad", "Participant's Designation": "Deputy General Manager", "Participant Dept.": "Admin, Safety and Security", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Ceramics Plant", "Trainer's Employee ID": 15107550, "Trainer Name": "Md. Mehedi Hassan", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15108820, "Participant's Name": "Isteaque Ahmed Chowdhury Shaon", "Participant's Designation": "Assistant General Manager", "Participant Dept.": "Plant HR", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Ceramics Plant", "Trainer's Employee ID": 15107550, "Trainer Name": "Md. Mehedi Hassan", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15105063, "Participant's Name": "Jaber Ahammad", "Participant's Designation": "Senior Engineer", "Participant Dept.": "Maintenance", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Ceramics Plant", "Trainer's Employee ID": 15107550, "Trainer Name": "Md. Mehedi Hassan", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15106864, "Participant's Name": "Md. Moniruzzaman", "Participant's Designation": "Senior Manager", "Participant Dept.": "Stock", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Ceramics Plant", "Trainer's Employee ID": 15107550, "Trainer Name": "Md. Mehedi Hassan", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15100385, "Participant's Name": "Md. Akkash Matubbar", "Participant's Designation": "Senior Manager", "Participant Dept.": "Store", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Ceramics Plant", "Trainer's Employee ID": 15107550, "Trainer Name": "Md. Mehedi Hassan", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15100373, "Participant's Name": "Md. Zahangir Alam", "Participant's Designation": "Manager", "Participant Dept.": "Accounts and Finance", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Ceramics Plant", "Trainer's Employee ID": 15107550, "Trainer Name": "Md. Mehedi Hassan", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15102542, "Participant's Name": "Md. Siddikur Rahman", "Participant's Designation": "Deputy Manager", "Participant Dept.": "Quality Control", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Ceramics Plant", "Trainer's Employee ID": 15107550, "Trainer Name": "Md. Mehedi Hassan", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15100388, "Participant's Name": "Md. Shamsur Rahman", "Participant's Designation": "Senior Manager", "Participant Dept.": "Production", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Ceramics Plant", "Trainer's Employee ID": 15107550, "Trainer Name": "Md. Mehedi Hassan", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15100437, "Participant's Name": "Md. Al Amin", "Participant's Designation": "Deputy Manager", "Participant Dept.": "Utility", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Ceramics Plant", "Trainer's Employee ID": 15107550, "Trainer Name": "Md. Mehedi Hassan", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15100410, "Participant's Name": "Md. Mamunur Rashid", "Participant's Designation": "Assistant Manager", "Participant Dept.": "Maintenance", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Ceramics Plant", "Trainer's Employee ID": 15107550, "Trainer Name": "Md. Mehedi Hassan", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15107310, "Participant's Name": "Md. Mahbub Ul Alam", "Participant's Designation": "Assistant Manager", "Participant Dept.": "Production", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Ceramics Plant", "Trainer's Employee ID": 15107550, "Trainer Name": "Md. Mehedi Hassan", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15108985, "Participant's Name": "Atiqul Islam", "Participant's Designation": "Assistant Manager", "Participant Dept.": "Pre-Audit", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Ceramics Plant", "Trainer's Employee ID": 15107550, "Trainer Name": "Md. Mehedi Hassan", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15106673, "Participant's Name": "Md. Rokonozzaman Rupon", "Participant's Designation": "Engineer", "Participant Dept.": "Production", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Ceramics Plant", "Trainer's Employee ID": 15107550, "Trainer Name": "Md. Mehedi Hassan", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15100393, "Participant's Name": "Md. Al Mamun", "Participant's Designation": "Assistant Manager", "Participant Dept.": "Production", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Ceramics Plant", "Trainer's Employee ID": 15107550, "Trainer Name": "Md. Mehedi Hassan", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15109396, "Participant's Name": "K.M Shakib", "Participant's Designation": "Executive I", "Participant Dept.": "Quality Operations", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Ceramics Plant", "Trainer's Employee ID": 15107550, "Trainer Name": "Md. Mehedi Hassan", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15107842, "Participant's Name": "Syed Monzur Ul Gous", "Participant's Designation": "Assistant Manager", "Participant Dept.": "Production", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Ceramics Plant", "Trainer's Employee ID": 15107550, "Trainer Name": "Md. Mehedi Hassan", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15107658, "Participant's Name": "Nahida Parvin Nitu", "Participant's Designation": "Fashion Designer", "Participant Dept.": "Fashion Design and Product Development", "Gender  of Participant": "Female"}, {"Date": "2026-04-25", "Location": "Ceramics Plant", "Trainer's Employee ID": 15107550, "Trainer Name": "Md. Mehedi Hassan", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15107756, "Participant's Name": "Md. Nayeem Islam", "Participant's Designation": "Assistant Engineer", "Participant Dept.": "Maintenance", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Ceramics Plant", "Trainer's Employee ID": 15107550, "Trainer Name": "Md. Mehedi Hassan", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15100428, "Participant's Name": "Md. Abu Taher", "Participant's Designation": "Deputy Manager", "Participant Dept.": "Cost and Budget", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Ceramics Plant", "Trainer's Employee ID": 15107550, "Trainer Name": "Md. Mehedi Hassan", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15103466, "Participant's Name": "Faruque Ahmed", "Participant's Designation": "Senior Executive", "Participant Dept.": "Accounts and Finance", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Ceramics Plant", "Trainer's Employee ID": 15107550, "Trainer Name": "Md. Mehedi Hassan", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15100440, "Participant's Name": "Md. Nazmul Hasan", "Participant's Designation": "Deputy Manager", "Participant Dept.": "Plant HR", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Ceramics Plant", "Trainer's Employee ID": 15107550, "Trainer Name": "Md. Mehedi Hassan", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15108573, "Participant's Name": "Md. Didarul Islam", "Participant's Designation": "Senior Executive", "Participant Dept.": "Enterprise System", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Ceramics Plant", "Trainer's Employee ID": 15107550, "Trainer Name": "Md. Mehedi Hassan", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15107910, "Participant's Name": "Fazlul Karim", "Participant's Designation": "Assistant Graphics Designer", "Participant Dept.": "Sample", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Ceramics Plant", "Trainer's Employee ID": 15107550, "Trainer Name": "Md. Mehedi Hassan", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15107852, "Participant's Name": "Abdul Mannan Hawlader", "Participant's Designation": "Project Engineer", "Participant Dept.": "Construction", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Ceramics Plant", "Trainer's Employee ID": 15107550, "Trainer Name": "Md. Mehedi Hassan", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15103606, "Participant's Name": "Md. Farook Hossain", "Participant's Designation": "Senior Engineer", "Participant Dept.": "Maintenance", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "Ceramics Plant", "Trainer's Employee ID": 15107550, "Trainer Name": "Md. Mehedi Hassan", "Trainer Designation": "Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15107419, "Participant's Name": "Shimul Kumar Paul", "Participant's Designation": "Assistant Manager", "Participant Dept.": "Production", "Gender  of Participant": "Male"}, {"Date": "2026-04-21", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15104653, "Participant's Name": "Mohammad Emarot Hossain FCA FCS", "Participant's Designation": "Chief Financial Officer", "Participant Dept.": "Accounts and Finance", "Gender  of Participant": "Male"}, {"Date": "2026-04-21", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15100061, "Participant's Name": "Moniruzzaman Khan", "Participant's Designation": "Assistant General Manager", "Participant Dept.": "Accounts and Finance", "Gender  of Participant": "Male"}, {"Date": "2026-04-21", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15108150, "Participant's Name": "B. M Kashefuzzaman", "Participant's Designation": "Senior Manager", "Participant Dept.": "Accounts and Finance", "Gender  of Participant": "Male"}, {"Date": "2026-04-21", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15103913, "Participant's Name": "Md. Saiful Islam", "Participant's Designation": "Manager", "Participant Dept.": "Commercial", "Gender  of Participant": "Male"}, {"Date": "2026-04-21", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15100118, "Participant's Name": "Mohammad Mizanur Rahman", "Participant's Designation": "Deputy Manager", "Participant Dept.": "Commercial", "Gender  of Participant": "Male"}, {"Date": "2026-04-21", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15102263, "Participant's Name": "Shahedul Karim", "Participant's Designation": "Deputy Manager", "Participant Dept.": "Sourcing", "Gender  of Participant": "Male"}, {"Date": "2026-04-21", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15101647, "Participant's Name": "Mohammed Monjur Hossen Patwary", "Participant's Designation": "Manager", "Participant Dept.": "Marketing", "Gender  of Participant": "Male"}, {"Date": "2026-04-21", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15100087, "Participant's Name": "Md. Mostofa Kamal", "Participant's Designation": "Deputy Manager", "Participant Dept.": "Accounts and Finance", "Gender  of Participant": "Male"}, {"Date": "2026-04-21", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15108218, "Participant's Name": "Md. Momenur Rahman", "Participant's Designation": "Assistant Manager", "Participant Dept.": "Marketing", "Gender  of Participant": "Male"}, {"Date": "2026-04-21", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15102333, "Participant's Name": "Md. Zahangir Alam", "Participant's Designation": "Deputy Manager", "Participant Dept.": "Marketing", "Gender  of Participant": "Male"}, {"Date": "2026-04-21", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15103537, "Participant's Name": "Shamim Ahmmed", "Participant's Designation": "Senior Executive", "Participant Dept.": "Commercial", "Gender  of Participant": "Male"}, {"Date": "2026-04-21", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15107643, "Participant's Name": "Mahadi Hassan", "Participant's Designation": "Executive", "Participant Dept.": "SCM", "Gender  of Participant": "Male"}, {"Date": "2026-04-21", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15107036, "Participant's Name": "Avijit Shill Avi", "Participant's Designation": "Senior Executive", "Participant Dept.": "Accounts and Finance", "Gender  of Participant": "Male"}, {"Date": "2026-04-21", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15107812, "Participant's Name": "Neloy Kumar Saha", "Participant's Designation": "Assistant Manager", "Participant Dept.": "Accounts and Finance", "Gender  of Participant": "Male"}, {"Date": "2026-04-21", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15109485, "Participant's Name": "Monirul Islam", "Participant's Designation": "Senior Executive", "Participant Dept.": "Accounts and Finance", "Gender  of Participant": "Male"}, {"Date": "2026-04-21", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15103763, "Participant's Name": "Md Mizanur Rahaman", "Participant's Designation": "Executive", "Participant Dept.": "Commercial", "Gender  of Participant": "Male"}, {"Date": "2026-04-21", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15104012, "Participant's Name": "Mahbuba Mannan", "Participant's Designation": "Senior Executive", "Participant Dept.": "Accounts and Finance", "Gender  of Participant": "Female"}, {"Date": "2026-04-21", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15106996, "Participant's Name": "Tasin Alif", "Participant's Designation": "Deputy Manager", "Participant Dept.": "Accounts and Finance", "Gender  of Participant": "Male"}, {"Date": "2026-04-21", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15104328, "Participant's Name": "Md. Noor Ul Alam", "Participant's Designation": "Chief Internal Audit Officer", "Participant Dept.": "Internal Audit", "Gender  of Participant": "Male"}, {"Date": "2026-04-29", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15103789, "Participant's Name": "Nurul Kabir Sazzad", "Participant's Designation": "Deputy General Manager", "Participant Dept.": "Internal Audit", "Gender  of Participant": "Male"}, {"Date": "2026-04-29", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15104775, "Participant's Name": "Md. Mahmudul Hassan", "Participant's Designation": "Assistant General Manager", "Participant Dept.": "Internal Audit", "Gender  of Participant": "Male"}, {"Date": "2026-04-29", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15109287, "Participant's Name": "Shihabul Anwar", "Participant's Designation": "Senior Manager", "Participant Dept.": "Internal Audit", "Gender  of Participant": "Male"}, {"Date": "2026-04-29", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15109411, "Participant's Name": "Md. Sowrab Hossain", "Participant's Designation": "Senior Manager", "Participant Dept.": "Internal Audit", "Gender  of Participant": "Male"}, {"Date": "2026-04-29", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15103635, "Participant's Name": "Waziur Rahman", "Participant's Designation": "Manager", "Participant Dept.": "Internal Audit", "Gender  of Participant": "Male"}, {"Date": "2026-04-29", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15100063, "Participant's Name": "Mohammad Monirul Hasan", "Participant's Designation": "Manager", "Participant Dept.": "Internal Audit", "Gender  of Participant": "Male"}, {"Date": "2026-04-29", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15100106, "Participant's Name": "AKM Shariful Haque", "Participant's Designation": "Manager", "Participant Dept.": "Internal Audit", "Gender  of Participant": "Male"}, {"Date": "2026-04-29", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15100043, "Participant's Name": "MMG Kaiser", "Participant's Designation": "Deputy Manager", "Participant Dept.": "Internal Audit", "Gender  of Participant": "Male"}, {"Date": "2026-04-29", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15107521, "Participant's Name": "Mahbub Rony", "Participant's Designation": "Deputy Manager", "Participant Dept.": "Internal Audit", "Gender  of Participant": "Male"}, {"Date": "2026-04-29", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15105225, "Participant's Name": "Md. Abdul Quiyum", "Participant's Designation": "Deputy Manager", "Participant Dept.": "Internal Audit", "Gender  of Participant": "Male"}, {"Date": "2026-04-29", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15104738, "Participant's Name": "Faisal Ahmed Suny", "Participant's Designation": "Deputy Manager", "Participant Dept.": "Internal Audit", "Gender  of Participant": "Male"}, {"Date": "2026-04-29", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15106949, "Participant's Name": "Mridul Kanti Biswas", "Participant's Designation": "Assistant Manager", "Participant Dept.": "Internal Audit", "Gender  of Participant": "Male"}, {"Date": "2026-04-29", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15107993, "Participant's Name": "Arif Reza Hasan", "Participant's Designation": "Deputy Manager", "Participant Dept.": "Internal Audit", "Gender  of Participant": "Male"}, {"Date": "2026-04-29", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15108151, "Participant's Name": "Ehsanul Huq Choudhury", "Participant's Designation": "Assistant Manager", "Participant Dept.": "Internal Audit", "Gender  of Participant": "Male"}, {"Date": "2026-04-29", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15103982, "Participant's Name": "Md. Niaz Mahmud", "Participant's Designation": "Assistant Manager", "Participant Dept.": "Internal Audit", "Gender  of Participant": "Male"}, {"Date": "2026-04-29", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15104473, "Participant's Name": "Md. Nasir Uddin", "Participant's Designation": "Assistant Manager", "Participant Dept.": "Internal Audit", "Gender  of Participant": "Male"}, {"Date": "2026-04-29", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15106387, "Participant's Name": "Md. Naimul Islam", "Participant's Designation": "Assistant Manager", "Participant Dept.": "Internal Audit", "Gender  of Participant": "Male"}, {"Date": "2026-04-29", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15107189, "Participant's Name": "Md. Shiraj Hossain", "Participant's Designation": "Senior Executive", "Participant Dept.": "Internal Audit", "Gender  of Participant": "Male"}, {"Date": "2026-04-29", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15107349, "Participant's Name": "Md. Foysal Islam", "Participant's Designation": "Senior Executive", "Participant Dept.": "Internal Audit", "Gender  of Participant": "Male"}, {"Date": "2026-04-29", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15107511, "Participant's Name": "Md Nabed Hasan Patwary", "Participant's Designation": "Assistant Manager", "Participant Dept.": "Internal Audit", "Gender  of Participant": "Male"}, {"Date": "2026-04-29", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15107512, "Participant's Name": "Md. Shakil Hossain", "Participant's Designation": "Senior Executive", "Participant Dept.": "Internal Audit", "Gender  of Participant": "Male"}, {"Date": "2026-04-29", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15107797, "Participant's Name": "Md. Naimur Rahman", "Participant's Designation": "Assistant Manager", "Participant Dept.": "Internal Audit", "Gender  of Participant": "Male"}, {"Date": "2026-04-29", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15107813, "Participant's Name": "Musrat Al Sakin", "Participant's Designation": "Assistant Manager", "Participant Dept.": "Internal Audit", "Gender  of Participant": "Male"}, {"Date": "2026-04-29", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15101755, "Participant's Name": "Suayeb Hossain", "Participant's Designation": "Assistant Manager", "Participant Dept.": "Internal Audit", "Gender  of Participant": "Male"}, {"Date": "2026-04-29", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15103978, "Participant's Name": "Md. Sohel Ahammed", "Participant's Designation": "Assistant Manager", "Participant Dept.": "Internal Audit", "Gender  of Participant": "Male"}, {"Date": "2026-04-29", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15104343, "Participant's Name": "Khan Abdul Latif", "Participant's Designation": "Assistant Manager", "Participant Dept.": "Internal Audit", "Gender  of Participant": "Male"}, {"Date": "2026-04-29", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15105521, "Participant's Name": "Md. Mizanur Rahman", "Participant's Designation": "Senior Executive", "Participant Dept.": "Internal Audit", "Gender  of Participant": "Male"}, {"Date": "2026-04-29", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15106084, "Participant's Name": "Md. Ariful Islam", "Participant's Designation": "Senior Executive", "Participant Dept.": "Internal Audit", "Gender  of Participant": "Male"}, {"Date": "2026-04-29", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15108621, "Participant's Name": "Moniruzzaman Khan", "Participant's Designation": "Senior Executive", "Participant Dept.": "Internal Audit", "Gender  of Participant": "Male"}, {"Date": "2026-04-29", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15108875, "Participant's Name": "Md. Esamy Azam", "Participant's Designation": "Senior Executive", "Participant Dept.": "Internal Audit", "Gender  of Participant": "Male"}, {"Date": "2026-04-29", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15109263, "Participant's Name": "Md. Tareq Hasan Ovi", "Participant's Designation": "Executive", "Participant Dept.": "Internal Audit", "Gender  of Participant": "Male"}, {"Date": "2026-04-29", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15109288, "Participant's Name": "Tuhin Gazi", "Participant's Designation": "Executive", "Participant Dept.": "Internal Audit", "Gender  of Participant": "Male"}, {"Date": "2026-04-29", "Location": "Corporate", "Trainer's Employee ID": 15106520, "Trainer Name": "Md. Iqbal Hossain", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Support", "Participant's ID": 15108444, "Participant's Name": "Md. Ahosun Habib Santo", "Participant's Designation": "Executive", "Participant Dept.": "Internal Audit", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "JKL 2", "Trainer's Employee ID": 15100774, "Trainer Name": "S.M. Abdul Motin", "Trainer Designation": "Deputy Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15102424, "Participant's Name": "Md. Humayun Kabir", "Participant's Designation": "Senior Executive", "Participant Dept.": "Industrial Engineering", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "JKL 2", "Trainer's Employee ID": 15100774, "Trainer Name": "S.M. Abdul Motin", "Trainer Designation": "Deputy Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15105407, "Participant's Name": "Md Elius", "Participant's Designation": "Executive", "Participant Dept.": "Industrial Engineering", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "JKL 2", "Trainer's Employee ID": 15100774, "Trainer Name": "S.M. Abdul Motin", "Trainer Designation": "Deputy Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15103876, "Participant's Name": "Md. Aminul Islam", "Participant's Designation": "Assistant Manager", "Participant Dept.": "Quality", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "JKL 2", "Trainer's Employee ID": 15100774, "Trainer Name": "S.M. Abdul Motin", "Trainer Designation": "Deputy Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15104984, "Participant's Name": "Al Amin", "Participant's Designation": "Officer", "Participant Dept.": "Quality", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "JKL 2", "Trainer's Employee ID": 15100774, "Trainer Name": "S.M. Abdul Motin", "Trainer Designation": "Deputy Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15106575, "Participant's Name": "Md. Parvej Ali", "Participant's Designation": "Officer", "Participant Dept.": "GPQ", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "JKL 2", "Trainer's Employee ID": 15100774, "Trainer Name": "S.M. Abdul Motin", "Trainer Designation": "Deputy Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15108836, "Participant's Name": "Md. Din Islam", "Participant's Designation": "Officer", "Participant Dept.": "Quality", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "JKL 2", "Trainer's Employee ID": 15100774, "Trainer Name": "S.M. Abdul Motin", "Trainer Designation": "Deputy Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15105410, "Participant's Name": "A K M Faruk Mian", "Participant's Designation": "Officer", "Participant Dept.": "Quality", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "JKL 2", "Trainer's Employee ID": 15100774, "Trainer Name": "S.M. Abdul Motin", "Trainer Designation": "Deputy Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15101380, "Participant's Name": "Md. Shamsul Alam", "Participant's Designation": "Officer", "Participant Dept.": "Store", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "JKL 2", "Trainer's Employee ID": 15100774, "Trainer Name": "S.M. Abdul Motin", "Trainer Designation": "Deputy Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15104570, "Participant's Name": "Md. Shafiqul Islam", "Participant's Designation": "Assistant Engineer", "Participant Dept.": "Utility", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "JKL 2", "Trainer's Employee ID": 15100774, "Trainer Name": "S.M. Abdul Motin", "Trainer Designation": "Deputy Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15103529, "Participant's Name": "Md. Tuhin Sarker", "Participant's Designation": "Senior Officer", "Participant Dept.": "GPQ", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "JKL 2", "Trainer's Employee ID": 15100774, "Trainer Name": "S.M. Abdul Motin", "Trainer Designation": "Deputy Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15107789, "Participant's Name": "Md. Nayem Ali Nobab", "Participant's Designation": "Officer", "Participant Dept.": "GPQ", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "JKL 2", "Trainer's Employee ID": 15100774, "Trainer Name": "S.M. Abdul Motin", "Trainer Designation": "Deputy Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15103946, "Participant's Name": "Mohammad Mahabubur Rahaman", "Participant's Designation": "Executive", "Participant Dept.": "Accounts and Finance", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "JKL 2", "Trainer's Employee ID": 15100774, "Trainer Name": "S.M. Abdul Motin", "Trainer Designation": "Deputy Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15108184, "Participant's Name": "Abul Fayez", "Participant's Designation": "Deputy Manager", "Participant Dept.": "Compliance", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "JKL 2", "Trainer's Employee ID": 15100774, "Trainer Name": "S.M. Abdul Motin", "Trainer Designation": "Deputy Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15100574, "Participant's Name": "Md. Anisur Rahaman", "Participant's Designation": "Deputy Manager", "Participant Dept.": "Store", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "JKL 2", "Trainer's Employee ID": 15100774, "Trainer Name": "S.M. Abdul Motin", "Trainer Designation": "Deputy Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15100545, "Participant's Name": "Mohammad Masud Karim", "Participant's Designation": "Assistant General Manager", "Participant Dept.": "Production", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "JKL 2", "Trainer's Employee ID": 15100774, "Trainer Name": "S.M. Abdul Motin", "Trainer Designation": "Deputy Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15101399, "Participant's Name": "Md. Saiful Islam", "Participant's Designation": "Manager", "Participant Dept.": "Accounts and Finance", "Gender  of Participant": "Male"}, {"Date": "2026-04-25", "Location": "JKL 2", "Trainer's Employee ID": 15100774, "Trainer Name": "S.M. Abdul Motin", "Trainer Designation": "Deputy Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15106875, "Participant's Name": "Uzzul Hoque", "Participant's Designation": "Senior Manager", "Participant Dept.": "Utility", "Gender  of Participant": "Male"}, {"Date": "2026-04-26", "Location": "JTML", "Trainer's Employee ID": 15107191, "Trainer Name": "Md. Salim Reza Jim", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15106254, "Participant's Name": "Omar Faruque", "Participant's Designation": "Manager", "Participant Dept.": "Plant HR", "Gender  of Participant": "Male"}, {"Date": "2026-04-26", "Location": "JTML", "Trainer's Employee ID": 15107191, "Trainer Name": "Md. Salim Reza Jim", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15101392, "Participant's Name": "Md. Sultan Kabir Hossain Mondal", "Participant's Designation": "Deputy Manager", "Participant Dept.": "Enterprise System", "Gender  of Participant": "Male"}, {"Date": "2026-04-26", "Location": "JTML", "Trainer's Employee ID": 15107191, "Trainer Name": "Md. Salim Reza Jim", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15107659, "Participant's Name": "Motiur Rahman", "Participant's Designation": "Assistant Manager", "Participant Dept.": "Plant HR", "Gender  of Participant": "Male"}, {"Date": "2026-04-26", "Location": "JTML", "Trainer's Employee ID": 15107191, "Trainer Name": "Md. Salim Reza Jim", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15108492, "Participant's Name": "Masum Ibn Mannan", "Participant's Designation": "Medical Officer", "Participant Dept.": "Medical", "Gender  of Participant": "Male"}, {"Date": "2026-04-26", "Location": "JTML", "Trainer's Employee ID": 15107191, "Trainer Name": "Md. Salim Reza Jim", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15107644, "Participant's Name": "Omor Kyum Aunto", "Participant's Designation": "Junior Engineer", "Participant Dept.": "IT Support", "Gender  of Participant": "Male"}, {"Date": "2026-04-26", "Location": "JTML", "Trainer's Employee ID": 15107191, "Trainer Name": "Md. Salim Reza Jim", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15108803, "Participant's Name": "Md. Asaduzzaman", "Participant's Designation": "Officer", "Participant Dept.": "Safety and Security", "Gender  of Participant": "Male"}, {"Date": "2026-04-26", "Location": "JTML", "Trainer's Employee ID": 15107191, "Trainer Name": "Md. Salim Reza Jim", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15106810, "Participant's Name": "Muhammad Abdulla Al Sufian", "Participant's Designation": "Officer", "Participant Dept.": "Quality Control", "Gender  of Participant": "Male"}, {"Date": "2026-04-26", "Location": "JTML", "Trainer's Employee ID": 15107191, "Trainer Name": "Md. Salim Reza Jim", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15107509, "Participant's Name": "Md. Rubel Sheikh", "Participant's Designation": "Engineer", "Participant Dept.": "Maintenance", "Gender  of Participant": "Male"}, {"Date": "2026-04-26", "Location": "JTML", "Trainer's Employee ID": 15107191, "Trainer Name": "Md. Salim Reza Jim", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15108965, "Participant's Name": "Rasel Alam Talukder", "Participant's Designation": "Officer", "Participant Dept.": "Fire and Safety", "Gender  of Participant": "Male"}, {"Date": "2026-04-26", "Location": "JTML", "Trainer's Employee ID": 15107191, "Trainer Name": "Md. Salim Reza Jim", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15106213, "Participant's Name": "M. Abdul Aziz", "Participant's Designation": "Assistant Engineer", "Participant Dept.": "Utility", "Gender  of Participant": "Male"}, {"Date": "2026-04-26", "Location": "JTML", "Trainer's Employee ID": 15107191, "Trainer Name": "Md. Salim Reza Jim", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15106111, "Participant's Name": "Md. Sazzad Hossain", "Participant's Designation": "Assistant Engineer", "Participant Dept.": "Utility", "Gender  of Participant": "Male"}, {"Date": "2026-04-26", "Location": "JTML", "Trainer's Employee ID": 15107191, "Trainer Name": "Md. Salim Reza Jim", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15105690, "Participant's Name": "Md. Asaduzzaman Asad", "Participant's Designation": "Site Engineer", "Participant Dept.": "Construction", "Gender  of Participant": "Male"}, {"Date": "2026-04-26", "Location": "JTML", "Trainer's Employee ID": 15107191, "Trainer Name": "Md. Salim Reza Jim", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15104185, "Participant's Name": "Md. Dipu Sarder", "Participant's Designation": "Senior Officer", "Participant Dept.": "Construction", "Gender  of Participant": "Male"}, {"Date": "2026-04-26", "Location": "JTML", "Trainer's Employee ID": 15107191, "Trainer Name": "Md. Salim Reza Jim", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15107312, "Participant's Name": "Md. Abdulla Al Noman", "Participant's Designation": "Assistant Manager", "Participant Dept.": "Quality Control", "Gender  of Participant": "Male"}, {"Date": "2026-04-26", "Location": "JTML", "Trainer's Employee ID": 15107191, "Trainer Name": "Md. Salim Reza Jim", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15107985, "Participant's Name": "Md. Ashraful Islam", "Participant's Designation": "Assistant Engineer", "Participant Dept.": "Maintenance", "Gender  of Participant": "Male"}, {"Date": "2026-04-26", "Location": "JTML", "Trainer's Employee ID": 15107191, "Trainer Name": "Md. Salim Reza Jim", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15106816, "Participant's Name": "Mazharul Islam", "Participant's Designation": "Officer", "Participant Dept.": "Production", "Gender  of Participant": "Male"}, {"Date": "2026-04-26", "Location": "JTML", "Trainer's Employee ID": 15107191, "Trainer Name": "Md. Salim Reza Jim", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15107416, "Participant's Name": "Md. Touhide Hossain", "Participant's Designation": "Officer", "Participant Dept.": "Fire and Safety", "Gender  of Participant": "Male"}, {"Date": "2026-04-26", "Location": "JTML", "Trainer's Employee ID": 15107191, "Trainer Name": "Md. Salim Reza Jim", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15106925, "Participant's Name": "Md. Jamal Uddin", "Participant's Designation": "Senior Manager", "Participant Dept.": "Store", "Gender  of Participant": "Male"}, {"Date": "2026-04-26", "Location": "JTML", "Trainer's Employee ID": 15107191, "Trainer Name": "Md. Salim Reza Jim", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15108049, "Participant's Name": "Zayed Ahmed", "Participant's Designation": "Assistant Manager", "Participant Dept.": "Internal Audit", "Gender  of Participant": "Male"}, {"Date": "2026-04-26", "Location": "JTML", "Trainer's Employee ID": 15107191, "Trainer Name": "Md. Salim Reza Jim", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15105726, "Participant's Name": "Abu Bakar Siddique", "Participant's Designation": "Deputy Manager", "Participant Dept.": "Accounts and Finance", "Gender  of Participant": "Male"}, {"Date": "2026-04-26", "Location": "JTML", "Trainer's Employee ID": 15107191, "Trainer Name": "Md. Salim Reza Jim", "Trainer Designation": "Assistant Manager", "Trainer Dept.": "IT Infrastructure", "Participant's ID": 15108445, "Participant's Name": "Md. Mosabber Billah Masum", "Participant's Designation": "Officer", "Participant Dept.": "Production", "Gender  of Participant": "Male"}];
+
+/* ============= STATE ============= */
+let DATA = JSON.parse(JSON.stringify(window.__INITIAL_DATA__));
+const PALETTE = ['#7cf9c7','#ffb547','#8ab6ff','#c694ff','#ff7e7e','#9affd9','#ffd089','#a3c8ff','#e0c7ff','#ffacac'];
+let CHARTS = {};
+
+/* ============= CONFIG: LIVE GOOGLE SHEET ============= */
+// Published-to-web CSV link for the attendance tab.
+// To point at a different tab/sheet, replace this with that tab's published CSV URL.
+const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQA5cl2Ej0KdfVB2Ncbi0zzyowIUp3hQqVTZeFzyi746dew7HW6l9MksEQsNsCVjehMy1TkmF6EYpgy/pub?output=csv";
+// Optional: published CSV link for a separate "Lakehouse" tab. Leave "" to use embedded data below.
+const LAKE_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQA5cl2Ej0KdfVB2Ncbi0zzyowIUp3hQqVTZeFzyi746dew7HW6l9MksEQsNsCVjehMy1TkmF6EYpgy/pub?gid=364253751&output=csv";
+
+/* ============= DBL DATA LAKEHOUSE DATA (fallback / embedded) =============
+   Replace this object — or set LAKE_CSV_URL above — with the real Lakehouse sheet. */
+const LAKE_DATA = {"execKpis": [{"kpi": "Overall POC Status", "value": "POC Successful", "msg": "Connectivity, Datastream pipelines, BigQuery ingestion, backfill, and test data verification completed."}, {"kpi": "POC Completion", "value": "100%", "msg": "Core POC milestones are completed and ready for executive demonstration."}, {"kpi": "Lakehouse Roadmap Progress", "value": "58%", "msg": "Full production rollout progress based on completed, ongoing, risk, and next-plan items."}, {"kpi": "Completed Activities", "value": "9", "msg": "Foundation, connectivity, endpoints, permissions, streams, backfill, and test data transfer."}, {"kpi": "Ongoing Activities", "value": "6", "msg": "Data validation, CDC monitoring, security governance, cost baseline, and dashboard layer preparation."}, {"kpi": "Next Plan Activities", "value": "6", "msg": "Curated layer, executive dashboard, production architecture, SOP, and go-live roadmap."}, {"kpi": "Open Risk Items", "value": "2", "msg": "Validation mismatch checks and production permission model need final closure."}], "statusSummary": [{"status": "Completed", "count": 9, "avg": "100%"}, {"status": "Ongoing", "count": 6, "avg": "52%"}, {"status": "Risk", "count": 2, "avg": "28%"}, {"status": "Next Plan", "count": 6, "avg": "13%"}], "activities": [{"group": "Completed", "area": "Foundation", "activity": "POC scope and architecture alignment", "status": "Completed", "stage": "Planning", "completion": "100%", "owner": "DBL IT + Google Partner", "target": "2026-05-03", "message": "Lakehouse POC scope and target flow agreed.", "evidence": "POC scope ready", "priority": "High", "dependency": "Prepared for executive review"}, {"group": "Completed", "area": "Connectivity", "activity": "Oracle source DB connectivity with Datastream", "status": "Completed", "stage": "Connectivity", "completion": "100%", "owner": "DBL IT", "target": "2026-05-05", "message": "Oracle source successfully connected and handshake completed.", "evidence": "Datastream validation passed", "priority": "High", "dependency": "Source DB access available"}, {"group": "Completed", "area": "Connectivity", "activity": "MS SQL source DB connectivity with Datastream", "status": "Completed", "stage": "Connectivity", "completion": "100%", "owner": "DBL IT", "target": "2026-05-05", "message": "MS SQL source successfully connected and handshake completed.", "evidence": "Datastream validation passed", "priority": "High", "dependency": "Source DB access available"}, {"group": "Completed", "area": "Datastream Setup", "activity": "Source and destination endpoints configured", "status": "Completed", "stage": "Configuration", "completion": "100%", "owner": "Cloud Partner", "target": "2026-05-06", "message": "Source endpoints and BigQuery destinations configured for data transfer.", "evidence": "Endpoint test successful", "priority": "High", "dependency": "BigQuery project and datasets available"}, {"group": "Completed", "area": "Security / IAM", "activity": "Permission issues resolved and validation checks passed", "status": "Completed", "stage": "Validation", "completion": "100%", "owner": "DBL IT + Cloud Partner", "target": "2026-05-07", "message": "Required permissions configured and Datastream validation completed.", "evidence": "IAM validation passed", "priority": "High", "dependency": "Temporary POC permissions reviewed"}, {"group": "Completed", "area": "Pipeline", "activity": "Oracle to BigQuery stream created", "status": "Completed", "stage": "Pipeline Build", "completion": "100%", "owner": "Cloud Partner", "target": "2026-05-08", "message": "Oracle stream pipeline created from source database to BigQuery.", "evidence": "Stream running", "priority": "High", "dependency": "Monitoring required"}, {"group": "Completed", "area": "Pipeline", "activity": "MS SQL to BigQuery stream created", "status": "Completed", "stage": "Pipeline Build", "completion": "100%", "owner": "Cloud Partner", "target": "2026-05-08", "message": "MS SQL stream pipeline created from source database to BigQuery.", "evidence": "Stream running", "priority": "High", "dependency": "Monitoring required"}, {"group": "Completed", "area": "Data Ingestion", "activity": "Initial backfill completed", "status": "Completed", "stage": "Backfill", "completion": "100%", "owner": "Cloud Partner", "target": "2026-05-09", "message": "Historical test data successfully ingested into BigQuery.", "evidence": "Backfill completed", "priority": "High", "dependency": "Production backfill plan needed"}, {"group": "Completed", "area": "Data Verification", "activity": "Test data transfer verified in BigQuery", "status": "Completed", "stage": "Verification", "completion": "100%", "owner": "DBL IT", "target": "2026-05-10", "message": "Test records from source databases were confirmed in BigQuery.", "evidence": "Sample data matched", "priority": "High", "dependency": "Business validation pending"}, {"group": "Ongoing", "area": "Data Validation", "activity": "Row count validation for key Oracle and MS SQL tables", "status": "Ongoing", "stage": "Data Quality", "completion": "75%", "owner": "DBL IT + Business Users", "target": "2026-05-17", "message": "Row counts are being verified between source systems and BigQuery.", "evidence": "Validation sheet / SQL checks", "priority": "High", "dependency": "Needs business data owners"}, {"group": "Ongoing", "area": "CDC Monitoring", "activity": "Incremental data change tracking and CDC lag monitoring", "status": "Ongoing", "stage": "Operations", "completion": "60%", "owner": "Cloud Partner", "target": "2026-05-18", "message": "CDC pipeline is running; monitoring baseline needs to be finalized.", "evidence": "CDC lag report", "priority": "High", "dependency": "Cloud Monitoring setup required"}, {"group": "Ongoing", "area": "Data Quality", "activity": "Schema, null, duplicate, and sample data checks", "status": "Ongoing", "stage": "Data Quality", "completion": "55%", "owner": "DBL IT", "target": "2026-05-19", "message": "Data quality checks are in progress before executive dashboard use.", "evidence": "DQ rule checklist", "priority": "Medium", "dependency": "Depends on table priority list"}, {"group": "Ongoing", "area": "Governance", "activity": "Production IAM and access control model", "status": "Ongoing", "stage": "Governance", "completion": "45%", "owner": "IT Security + DBL IT", "target": "2026-05-20", "message": "Access model needs final review for production users and vendors.", "evidence": "IAM matrix draft", "priority": "High", "dependency": "Security approval required"}, {"group": "Ongoing", "area": "Cost Management", "activity": "BigQuery storage, compute, and Datastream cost baseline", "status": "Ongoing", "stage": "Cost Review", "completion": "40%", "owner": "DBL IT + Finance", "target": "2026-05-21", "message": "Estimated production cost and usage controls are being prepared.", "evidence": "Cost baseline draft", "priority": "Medium", "dependency": "Requires expected data volume"}, {"group": "Ongoing", "area": "Reporting Layer", "activity": "Dashboard data model and KPI definition", "status": "Ongoing", "stage": "BI Design", "completion": "35%", "owner": "DBL IT + Business", "target": "2026-05-22", "message": "Business KPI definitions and dashboard layout are being prepared.", "evidence": "KPI list draft", "priority": "High", "dependency": "Requires executive KPI approval"}, {"group": "Risk", "area": "Data Validation", "activity": "Minor row-count mismatch requires checking", "status": "Risk", "stage": "Issue Closure", "completion": "30%", "owner": "DBL IT", "target": "2026-05-16", "message": "A small mismatch is under review; likely due to source updates during count.", "evidence": "Mismatch log", "priority": "High", "dependency": "Use timestamp-filtered reconciliation"}, {"group": "Risk", "area": "Governance", "activity": "Final production permission model not yet approved", "status": "Risk", "stage": "Issue Closure", "completion": "25%", "owner": "IT Security", "target": "2026-05-23", "message": "Production access approval is required before scaling beyond POC.", "evidence": "Security review pending", "priority": "High", "dependency": "Needs management approval"}, {"group": "Next Plan", "area": "Curated Layer", "activity": "Create BigQuery curated datasets and business views", "status": "Next Plan", "stage": "Build", "completion": "20%", "owner": "DBL IT + Cloud Partner", "target": "2026-05-25", "message": "Transform raw ingested data into clean business-ready datasets.", "evidence": "Curated dataset design", "priority": "High", "dependency": "Depends on validation completion"}, {"group": "Next Plan", "area": "Executive Dashboard", "activity": "Create executive visual dashboard from this sheet and BigQuery", "status": "Next Plan", "stage": "Dashboard", "completion": "15%", "owner": "DBL IT", "target": "2026-05-28", "message": "Visual dashboard will show completed work, ongoing work, risks, and next plan.", "evidence": "Dashboard mockup", "priority": "High", "dependency": "Claude / BI tool input"}, {"group": "Next Plan", "area": "Production Architecture", "activity": "Finalize production landing zone and lakehouse architecture", "status": "Next Plan", "stage": "Architecture", "completion": "10%", "owner": "DBL IT + Google Partner", "target": "2026-05-30", "message": "Production-ready architecture needs approval for scale, security, and monitoring.", "evidence": "Architecture document", "priority": "High", "dependency": "Requires management sign-off"}, {"group": "Next Plan", "area": "Business Use Case", "activity": "Select first business dashboard use case", "status": "Next Plan", "stage": "Business Alignment", "completion": "20%", "owner": "Management + Business Owners", "target": "2026-06-02", "message": "Recommended first use case: ERP, sales, inventory, finance, or HR reporting.", "evidence": "Use case shortlist", "priority": "High", "dependency": "Business sponsor needed"}, {"group": "Next Plan", "area": "Operations", "activity": "Prepare SOP, support ownership, and monitoring process", "status": "Next Plan", "stage": "Operations", "completion": "10%", "owner": "DBL IT", "target": "2026-06-05", "message": "Support model will define ownership, incident handling, refresh monitoring, and escalation.", "evidence": "SOP draft", "priority": "Medium", "dependency": "Depends on production architecture"}, {"group": "Next Plan", "area": "Roadmap", "activity": "Prepare production go-live roadmap", "status": "Next Plan", "stage": "Executive Approval", "completion": "0%", "owner": "DBL IT Leadership", "target": "2026-06-10", "message": "Final roadmap will cover pilot, production rollout, user adoption, and governance.", "evidence": "Go-live plan", "priority": "High", "dependency": "Requires POC sign-off"}], "title": "DBL Data Lakehouse POC", "subtitle": "Connectivity, Datastream pipelines, BigQuery ingestion, backfill, and test data verification completed."};
+
+/* ============= HELPERS ============= */
+const $ = (s) => document.querySelector(s);
+const norm = (v) => (v === undefined || v === null) ? '' : String(v).trim();
+const fmtDate = (d) => {
+  if (!d) return '';
+  if (d instanceof Date) return d.toISOString().slice(0,10);
+  const s = String(d);
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0,10);
+  // try parse
+  const p = new Date(s);
+  if (!isNaN(p)) return p.toISOString().slice(0,10);
+  return s;
+};
+function groupBy(arr, key){
+  const out = {};
+  arr.forEach(r => {
+    const k = norm(r[key]) || 'Unknown';
+    (out[k] = out[k] || []).push(r);
+  });
+  return out;
+}
+function sortEntries(o){ return Object.entries(o).sort((a,b)=>b[1].length - a[1].length); }
+function showToast(title, body, isErr){
+  const t = $('#toast');
+  $('#toastTitle').textContent = title;
+  $('#toastBody').textContent = body || '';
+  t.classList.toggle('err', !!isErr);
+  t.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(()=>t.classList.remove('show'), 3500);
+}
+
+/* ============= SCHEMA NORMALISER (for uploaded files) ============= */
+function normaliseRow(r){
+  // Find keys case/space-insensitively
+  const keys = Object.keys(r);
+  const find = (...names) => {
+    for (const n of names){
+      const k = keys.find(k => k.replace(/\s+/g,'').toLowerCase() === n.replace(/\s+/g,'').toLowerCase());
+      if (k) return r[k];
+    }
+    return undefined;
+  };
+  return {
+    'Date': fmtDate(find('Date')),
+    'Location': norm(find('Location')),
+    "Trainer's Employee ID": find("Trainer's Employee ID","TrainerEmployeeID","TrainerID"),
+    'Trainer Name': norm(find('Trainer Name','TrainerName')),
+    'Trainer Designation': norm(find('Trainer Designation')),
+    'Trainer Dept.': norm(find('Trainer Dept.','TrainerDept','Trainer Department')),
+    "Participant's ID": find("Participant's ID","ParticipantID"),
+    "Participant's Name": norm(find("Participant's Name","ParticipantName")),
+    "Participant's Designation": norm(find("Participant's Designation","ParticipantDesignation")),
+    'Participant Dept.': norm(find('Participant Dept.','ParticipantDept','Participant Department')),
+    'Gender  of Participant': norm(find('Gender  of Participant','Gender of Participant','Gender'))
+  };
+}
+
+/* ============= RENDER ============= */
+function render(){
+  renderKPIs();
+  renderDepts();
+  renderCharts();
+  renderSessions();
+  fetchLakehouseData();  // Fetch from CSV or use embedded data as fallback
+  $('#footStat').textContent = `// ${DATA.length} ATTENDANCE RECORDS · ${new Set(DATA.map(r=>r['Participant Dept.'])).size} DEPARTMENTS`;
+}
+
+function renderKPIs(){
+  const totalRows = DATA.length;
+  const uniqParticipants = new Set(DATA.map(r => r["Participant's ID"])).size;
+  const uniqDepts = new Set(DATA.map(r => r['Participant Dept.'])).size;
+  const sessions = new Set(DATA.map(r => `${r.Date}|${r.Location}|${r['Trainer Name']}`)).size;
+  const useCaseCount = document.querySelectorAll('#useCasesReveal .auto-card').length;
+  const html = [
+    {c:'k1 clickable',l:'Total participants',n:uniqParticipants,s:`<span class="chev">›</span> ${totalRows} attendance records`},
+    {c:'k2 clickable',l:'Sessions delivered',n:sessions,s:`<span class="chev">›</span> across ${new Set(DATA.map(r=>r.Date)).size} dates`},
+    {c:'k3 clickable',l:'Departments reached',n:uniqDepts,s:'<span class="chev">›</span> tap to view all departments',id:'kpiDept',target:'deptReveal'},
+    {c:'k4 clickable',l:'Use cases',n:useCaseCount,s:'<span class="chev">›</span> tap to view automation use-cases',id:'kpiUseCases',target:'useCasesReveal'},
+    {c:'k5 clickable',l:'DBL Data Lake &amp; Warehouse',n:(LAKE_DATA.activities?LAKE_DATA.activities.length:0),s:'<span class="chev">›</span> tap to view POC status',id:'kpiLake',target:'lakeReveal'}
+  ].map(k=>`<div class="kpi ${k.c}"${k.id?` id="${k.id}"`:''}${k.target?` data-target="${k.target}"`:''}><div class="lab">${k.l}</div><div class="num">${k.n}</div><div class="sub">${k.s}</div></div>`).join('');
+  $('#kpiRow').innerHTML = html;
+  // Bind drill-ins — each clickable KPI toggles its target reveal section
+  $('#kpiRow').querySelectorAll('.kpi.clickable').forEach(kpi => {
+    const reveal = document.getElementById(kpi.dataset.target);
+    if (reveal && reveal.classList.contains('open')) kpi.classList.add('open');
+    kpi.addEventListener('click', () => {
+      // Special handlers for k1 and k2 (show all data modals)
+      if (kpi.classList.contains('k1')) {
+        filterByAll();
+        return;
+      }
+      if (kpi.classList.contains('k2')) {
+        filterBySessions();
+        return;
+      }
+      // Default behavior for other clickable KPIs
+      if (!reveal) return;
+      const isOpen = reveal.classList.toggle('open');
+      kpi.classList.toggle('open', isOpen);
+      if (isOpen) setTimeout(() => reveal.scrollIntoView({behavior:'smooth', block:'start'}), 280);
+    });
+  });
+}
+
+function renderDepts(){
+  const groups = groupBy(DATA, 'Participant Dept.');
+  const sorted = sortEntries(groups);
+  const max = sorted[0] ? sorted[0][1].length : 1;
+  $('#deptGrid').innerHTML = sorted.map(([dept, rows]) => `
+    <div class="dept-card" data-dept="${encodeURIComponent(dept)}">
+      <div class="dept-name">${dept}</div>
+      <div class="dept-stat">
+        <div class="num">${rows.length}</div>
+        <div class="lab">attendees</div>
+      </div>
+      <div class="bar"><div class="bar-fill" style="width:${(rows.length/max)*100}%"></div></div>
+    </div>
+  `).join('');
+  // Bind clicks
+  $('#deptGrid').querySelectorAll('.dept-card').forEach(el => {
+    el.addEventListener('click', () => openDept(decodeURIComponent(el.dataset.dept)));
+  });
+}
+
+function openDept(dept){
+  const rows = DATA.filter(r => r['Participant Dept.'] === dept);
+  $('#modalTitle').textContent = dept;
+  const sessions = {};
+  rows.forEach(r => {
+    const key = `${r.Date}|${r.Location}|${r['Trainer Name']}`;
+    (sessions[key] = sessions[key] || {meta:{date:r.Date,loc:r.Location,trainer:r['Trainer Name'],trDesig:r['Trainer Designation'],trDept:r['Trainer Dept.']}, people:[]}).people.push(r);
+  });
+  const sessionEntries = Object.values(sessions).sort((a,b)=> a.meta.date.localeCompare(b.meta.date));
+  $('#modalMeta').textContent = `${rows.length} attendance${rows.length>1?'s':''} · ${sessionEntries.length} session${sessionEntries.length>1?'s':''} attended`;
+  $('#modalBody').innerHTML = sessionEntries.map(s => `
+    <div class="session-block">
+      <div class="session-block-head">
+        <div class="info">
+          <div class="date">${s.meta.date} · ${s.meta.loc}</div>
+          <div class="loc">Trainer: ${s.meta.trainer}</div>
+          <div class="trn">${s.meta.trDesig || ''}${s.meta.trDept ? ' · '+s.meta.trDept : ''}</div>
+        </div>
+        <div class="badge">${s.people.length} attendee${s.people.length>1?'s':''}</div>
+      </div>
+      <table class="participant-table">
+        <thead><tr><th>ID</th><th>Name</th><th>Designation</th><th>Gender</th></tr></thead>
+        <tbody>
+          ${s.people.map(p=>`
+            <tr>
+              <td class="id">${p["Participant's ID"]||''}</td>
+              <td>${p["Participant's Name"]||''}</td>
+              <td>${p["Participant's Designation"]||''}</td>
+              <td>${p['Gender  of Participant']||''}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `).join('');
+  $('#modalBg').classList.add('show');
+}
+$('#drillDownClose').addEventListener('click', () => $('#drillDownBg').classList.remove('show'));
+$('#drillDownBg').addEventListener('click', (e) => { if (e.target === $('#drillDownBg')) $('#drillDownBg').classList.remove('show'); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') $('#drillDownBg').classList.remove('show'); });
+
+/* ============= BACK TO TOP BUTTON ============= */
+const backToTopBtn = $('#backToTopBtn');
+window.addEventListener('scroll', () => {
+  if (window.pageYOffset > 300) {
+    backToTopBtn.classList.add('show');
+  } else {
+    backToTopBtn.classList.remove('show');
+  }
+});
+backToTopBtn.addEventListener('click', () => {
+  window.scrollTo({top: 0, behavior: 'smooth'});
+});
+
+// Existing modal handlers
+$('#modalClose').addEventListener('click', () => $('#modalBg').classList.remove('show'));
+$('#modalBg').addEventListener('click', (e) => { if (e.target === $('#modalBg')) $('#modalBg').classList.remove('show'); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') $('#modalBg').classList.remove('show'); });
+
+/* ============= CHARTS ============= */
+function destroyCharts(){ Object.values(CHARTS).forEach(c => c && c.destroy()); CHARTS = {}; }
+function chartTextDefaults(){
+  Chart.defaults.color = '#c9c5bc';
+  Chart.defaults.font.family = "'Outfit',sans-serif";
+  Chart.defaults.font.size = 12;
+}
+function renderCharts(){
+  destroyCharts();
+  chartTextDefaults();
+
+  // Timeline: dates × locations stacked
+  const dates = [...new Set(DATA.map(r => r.Date))].sort();
+  const locs = [...new Set(DATA.map(r => r.Location))];
+  const dsTimeline = locs.map((loc, i) => ({
+    label: loc,
+    data: dates.map(d => DATA.filter(r => r.Date === d && r.Location === loc).length),
+    backgroundColor: PALETTE[i % PALETTE.length],
+    borderRadius: 6,
+    borderSkipped: false,
+    barThickness: 36
+  }));
+  CHARTS.timeline = new Chart($('#chartTimeline'), {
+    type:'bar',
+    data:{labels:dates,datasets:dsTimeline},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      onClick:(event, elements) => {
+        if (elements.length > 0) {
+          const dateIndex = elements[0].index;
+          filterByDate(dates[dateIndex]);
+        }
+      },
+      plugins:{legend:{position:'bottom',labels:{boxWidth:10,boxHeight:10,padding:14,usePointStyle:true,pointStyle:'circle'}},tooltip:{backgroundColor:'#1f2742',padding:12,cornerRadius:8,titleColor:'#7cf9c7'}},
+      scales:{
+        x:{stacked:true,grid:{display:false},ticks:{color:'#c9c5bc'}},
+        y:{stacked:true,grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#7d8499',precision:0}}
+      }
+    }
+  });
+
+  // Designation top 10 horizontal bar
+  const desigEntries = sortEntries(groupBy(DATA, "Participant's Designation")).slice(0,10);
+  CHARTS.desig = new Chart($('#chartDesig'),{
+    type:'bar',
+    data:{
+      labels: desigEntries.map(([k])=>k),
+      datasets:[{
+        data: desigEntries.map(([,v])=>v.length),
+        backgroundColor: desigEntries.map((_,i)=>PALETTE[i%PALETTE.length]),
+        borderRadius:6, borderSkipped:false
+      }]
+    },
+    options:{
+      indexAxis:'y',
+      responsive:true,maintainAspectRatio:false,
+      onClick:(event, elements) => {
+        if (elements.length > 0) {
+          const desigIndex = elements[0].index;
+          filterByDesignation(desigEntries[desigIndex][0]);
+        }
+      },
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'#1f2742',padding:12,cornerRadius:8}},
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#7d8499',precision:0}},
+        y:{grid:{display:false},ticks:{color:'#c9c5bc',font:{size:11}}}
+      }
+    }
+  });
+
+  // Locations doughnut
+  const locEntries = sortEntries(groupBy(DATA,'Location'));
+  CHARTS.loc = new Chart($('#chartLoc'),{
+    type:'doughnut',
+    data:{
+      labels:locEntries.map(([k])=>k),
+      datasets:[{
+        data:locEntries.map(([,v])=>v.length),
+        backgroundColor:locEntries.map((_,i)=>PALETTE[i%PALETTE.length]),
+        borderColor:'#0f1424',borderWidth:2
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,cutout:'60%',
+      onClick:(event, elements) => {
+        if (elements.length > 0) {
+          const locIndex = elements[0].index;
+          filterByLocation(locEntries[locIndex][0]);
+        }
+      },
+      plugins:{legend:{position:'bottom',labels:{boxWidth:10,boxHeight:10,padding:10,usePointStyle:true,pointStyle:'circle',font:{size:11}}}}
+    }
+  });
+
+  // Trainer bar
+  const trEntries = sortEntries(groupBy(DATA,'Trainer Name'));
+  CHARTS.tr = new Chart($('#chartTrainer'),{
+    type:'bar',
+    data:{
+      labels:trEntries.map(([k])=>k.split(' ').slice(-2).join(' ')),
+      datasets:[{
+        data:trEntries.map(([,v])=>v.length),
+        backgroundColor:trEntries.map((_,i)=>PALETTE[i%PALETTE.length]),
+        borderRadius:6,borderSkipped:false
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      onClick:(event, elements) => {
+        if (elements.length > 0) {
+          const trIndex = elements[0].index;
+          filterByTrainer(trEntries[trIndex][0]);
+        }
+      },
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'#1f2742',padding:12,cornerRadius:8}},
+      scales:{
+        x:{grid:{display:false},ticks:{color:'#c9c5bc',font:{size:10},maxRotation:30,minRotation:30}},
+        y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#7d8499',precision:0}}
+      }
+    }
+  });
+
+  // Gender pie
+  const gEntries = sortEntries(groupBy(DATA,'Gender  of Participant'));
+  CHARTS.gender = new Chart($('#chartGender'),{
+    type:'doughnut',
+    data:{
+      labels:gEntries.map(([k])=>k),
+      datasets:[{
+        data:gEntries.map(([,v])=>v.length),
+        backgroundColor:['#8ab6ff','#ff7e7e','#7cf9c7'],
+        borderColor:'#0f1424',borderWidth:2
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,cutout:'66%',
+      onClick:(event, elements) => {
+        if (elements.length > 0) {
+          const gIndex = elements[0].index;
+          filterByGender(gEntries[gIndex][0]);
+        }
+      },
+      plugins:{legend:{position:'bottom',labels:{boxWidth:10,boxHeight:10,padding:10,usePointStyle:true,pointStyle:'circle'}}}
+    }
+  });
+}
+
+function renderSessions(){
+  const sessions = {};
+  DATA.forEach(r => {
+    const key = `${r.Date}|${r.Location}|${r['Trainer Name']}`;
+    (sessions[key] = sessions[key] || {date:r.Date,loc:r.Location,tr:r['Trainer Name'],count:0}).count++;
+  });
+  const list = Object.values(sessions).sort((a,b)=> a.date.localeCompare(b.date) || b.count-a.count);
+  $('#sessionsList').innerHTML = list.map(s => `
+    <div class="session-row">
+      <div class="left">
+        <div class="date">${s.date}</div>
+        <div class="loc">${s.loc}</div>
+        <div class="trn">Trainer · ${s.tr}</div>
+      </div>
+      <div class="right">
+        <div class="count">${s.count}</div>
+        <div class="lab">attended</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ============= DBL DATA LAKEHOUSE ============= */
+const LAKE_STATUS_META = {
+  'Completed': {cls:'s-done',   dot:'#7cf9c7', bar:'pb-done'},
+  'Ongoing':   {cls:'s-ongoing',dot:'#ffb547', bar:'pb-ongoing'},
+  'Risk':      {cls:'s-risk',   dot:'#ff7e7e', bar:'pb-risk'},
+  'Next Plan': {cls:'s-next',   dot:'#8ab6ff', bar:'pb-next'}
+};
+const LAKE_ORDER = ['Completed','Ongoing','Risk','Next Plan'];
+
+function renderLakehouse(){
+  const L = LAKE_DATA;
+  if (!L || !L.activities) return;
+  const acts = L.activities;
+  const counts = {};
+  LAKE_ORDER.forEach(s => counts[s] = acts.filter(a => (a.status || a.group) === s));
+
+  // Status summary cards
+  $('#lakeStatusGrid').innerHTML = LAKE_ORDER.map(s => {
+    const m = LAKE_STATUS_META[s], items = counts[s] || [];
+    const avg = items.length ? Math.round(items.reduce((t,a)=>t+(parseInt(a.completion)||0),0)/items.length) : 0;
+    return `<div class="lake-stat ${m.cls}">
+      <div class="ls-lab">${s}</div>
+      <div class="ls-num">${items.length}</div>
+      <div class="ls-sub">avg ${avg}% complete</div>
+    </div>`;
+  }).join('');
+
+  // Overall roadmap progress
+  const overall = acts.length ? Math.round(acts.reduce((t,a)=>t+(parseInt(a.completion)||0),0)/acts.length) : 0;
+  const total = acts.length;
+  const seg = LAKE_ORDER.map(s => {
+    const m = LAKE_STATUS_META[s];
+    const w = total ? ((counts[s]||[]).length/total*100) : 0;
+    return w > 0 ? `<span class="${m.bar}" style="width:${w}%"></span>` : '';
+  }).join('');
+  const overallMsg = (L.execKpis && L.execKpis[0]) ? L.execKpis[0].msg : (L.subtitle || '');
+  $('#lakeProgressPanel').innerHTML = `
+    <div class="lpp-head">
+      <h3>Lakehouse roadmap progress</h3>
+      <div class="lpp-pct">${overall}%</div>
+    </div>
+    <p>${overallMsg}</p>
+    <div class="lpp-bar">${seg}</div>
+    <div class="lpp-legend">
+      ${LAKE_ORDER.map(s=>{const m=LAKE_STATUS_META[s];return `<span><i style="background:${m.dot}"></i>${s} · ${(counts[s]||[]).length}</span>`;}).join('')}
+    </div>`;
+
+  // Grouped activity items
+  $('#lakeGroups').innerHTML = LAKE_ORDER.map(s => {
+    const items = counts[s] || [];
+    if (!items.length) return '';
+    const m = LAKE_STATUS_META[s];
+    return `<div class="lake-group">
+      <div class="lake-group-head">
+        <span class="lgh-dot" style="background:${m.dot}"></span>
+        <h3>${s}</h3>
+        <span class="lgh-count">${items.length} ${items.length>1?'items':'item'}</span>
+      </div>
+      <div class="lake-items">
+        ${items.map(a => {
+          const pct = parseInt(a.completion)||0;
+          return `<div class="lake-item">
+            <div class="li-top">
+              <div>
+                <div class="li-title">${a.activity||''}</div>
+                <div class="li-area">${a.area||''}${a.stage?' · '+a.stage:''}</div>
+              </div>
+              <div class="li-pct" style="color:${m.dot}">${pct}%</div>
+            </div>
+            <div class="li-msg">${a.message||''}</div>
+            <div class="li-bar"><span style="width:${pct}%;background:${m.dot}"></span></div>
+            <div class="li-foot">
+              ${a.owner?`<span class="lake-chip owner">${a.owner}</span>`:''}
+              ${a.target?`<span class="lake-chip date">${a.target}</span>`:''}
+              ${a.priority?`<span class="lake-chip prio-${(a.priority||'').toLowerCase().replace(/\s+/g,'-')}">${a.priority} priority</span>`:''}
+              ${a.evidence?`<span class="lake-chip">${a.evidence}</span>`:''}
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ============= DRILL-DOWN / CHART INTERACTIVITY ============= */
+function showDrillDown(eyebrow, title, rows){
+  if (!rows || !rows.length){
+    showToast('No data', 'No records match this filter.', false);
+    return;
+  }
+  $('#drillDownEyebrow').textContent = eyebrow;
+  $('#drillDownTitle').textContent = title;
+  
+  // Build a table of attendance records
+  const html = `
+    <table class="participant-table" style="width:100%;">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Location</th>
+          <th>Trainer</th>
+          <th>Participant Name</th>
+          <th>Department</th>
+          <th>Designation</th>
+          <th>Gender</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows.map(r => `
+          <tr>
+            <td>${r.Date||''}</td>
+            <td>${r.Location||''}</td>
+            <td>${r['Trainer Name']||''}</td>
+            <td>${r["Participant's Name"]||''}</td>
+            <td>${r['Participant Dept.']||''}</td>
+            <td>${r["Participant's Designation"]||''}</td>
+            <td>${r['Gender  of Participant']||''}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+    <div style="margin-top:16px;padding:14px;background:rgba(255,255,255,0.03);border-radius:12px;border:1px solid var(--line);font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink-3);">
+      Total records: <strong style="color:var(--ink)">${rows.length}</strong>
+    </div>
+  `;
+  $('#drillDownBody').innerHTML = html;
+  $('#drillDownBg').classList.add('show');
+}
+
+function filterByAll(){
+  showDrillDown('All Participants', 'Complete attendance records (' + DATA.length + ' total)', DATA);
+}
+
+function filterBySessions(){
+  const sessions = sortEntries(groupBy(DATA,'Date'));
+  const sessionsData = DATA;
+  showDrillDown('All Sessions', 'Sessions delivered (' + sessions.length + ' dates)', sessionsData);
+}
+
+// Date filter
+function filterByDate(date){
+  const rows = DATA.filter(r => r.Date === date);
+  showDrillDown('Date: ' + date, 'Attendance on ' + date, rows);
+}
+
+// Location filter
+function filterByLocation(loc){
+  const rows = DATA.filter(r => r.Location === loc);
+  showDrillDown('Location: ' + loc, 'Attendees at ' + loc, rows);
+}
+
+// Trainer filter
+function filterByTrainer(trainer){
+  const rows = DATA.filter(r => r['Trainer Name'] === trainer);
+  showDrillDown('Trainer: ' + trainer, 'Sessions facilitated by ' + trainer, rows);
+}
+
+// Designation filter
+function filterByDesignation(desig){
+  const rows = DATA.filter(r => r["Participant's Designation"] === desig);
+  showDrillDown('Designation: ' + desig, 'Attendees with role: ' + desig, rows);
+}
+
+// Gender filter
+function filterByGender(gender){
+  const rows = DATA.filter(r => r['Gender  of Participant'] === gender);
+  showDrillDown('Gender: ' + gender, gender + ' participants', rows);
+}
+
+/* ============= FETCH LAKEHOUSE DATA FROM LIVE CSV ============= */
+async function fetchLakehouseData(){
+  if (!LAKE_CSV_URL) {
+    console.log('No LAKE_CSV_URL set; using embedded data');
+    renderLakehouse();
+    return;
+  }
+  try {
+    const response = await fetch(LAKE_CSV_URL, {cache:'no-store'});
+    const csvText = await response.text();
+    // Parse CSV into array of objects
+    Papa.parse(csvText, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        if (results.data && results.data.length > 0) {
+          // Transform CSV rows into LAKE_DATA structure
+          // Map actual sheet columns to our expected format
+          const activities = results.data
+            .filter(row => row['Milestone ID'] && row['Milestone ID'].trim()) // Skip empty rows
+            .map(row => ({
+              group: (row['Workstream'] || row['Dashboard Status'] || 'Pending').trim(),
+              area: row['Workstream'] || '',
+              activity: row['Activity'] || '',
+              status: (row['Dashboard Status'] || row['Status'] || '').trim(),
+              stage: row['System / Scope'] || row['Stage'] || '',
+              completion: (row['Progress %'] || row['Completion'] || '0%').toString().includes('%') ? (row['Progress %'] || '0%') : (row['Progress %'] || '0%') + '%',
+              owner: row['Owner'] || '',
+              target: row['Target Date'] || row['Target'] || '',
+              message: row['Executive Message'] || row['Message'] || '',
+              evidence: row['Evidence'] || '',
+              priority: row['Priority'] || 'Medium',
+              dependency: row['Dependency'] || ''
+            }));
+          
+          // Build summary stats from activities
+          const completed = activities.filter(a => a.status.includes('Completed')).length;
+          const ongoing = activities.filter(a => a.status.includes('Ongoing')).length;
+          const risk = activities.filter(a => a.status.includes('Risk')).length;
+          const nextPlan = activities.filter(a => a.status.includes('Next Plan')).length;
+          
+          LAKE_DATA.activities = activities;
+          LAKE_DATA.statusSummary = [
+            {status: 'Completed', count: completed, avg: '100%'},
+            {status: 'Ongoing', count: ongoing, avg: '52%'},
+            {status: 'Risk', count: risk, avg: '28%'},
+            {status: 'Next Plan', count: nextPlan, avg: '13%'}
+          ];
+          console.log('✓ Lakehouse data loaded from CSV:', activities.length, 'activities', {completed, ongoing, risk, nextPlan});
+          renderLakehouse();
+        } else {
+          console.warn('No data rows found in CSV');
+          renderLakehouse();
+        }
+      },
+      error: (err) => {
+        console.warn('CSV parse error, using embedded data:', err);
+        renderLakehouse();
+      }
+    });
+  } catch(err) {
+    console.warn('Failed to fetch lakehouse CSV:', err);
+    renderLakehouse();
+  }
+}
+
+/* ============= SOURCE BAR TOGGLE ============= */
+const sourceBar = $('#sourceBar');
+const toggleBtn = $('#toggleSourceBtn');
+toggleBtn.addEventListener('click', () => {
+  sourceBar.classList.toggle('show');
+  $('#toggleSourceText').textContent = sourceBar.classList.contains('show') ? 'Hide data source' : 'Show data source';
+});
+
+/* ============= LIVE GOOGLE SHEET ============= */
+function setSrcStatus(state, text){
+  const el = $('#srcStatus');
+  if (!el) return;
+  el.className = 'source-status ' + state;
+  $('#srcStatusText').textContent = text;
+}
+
+function rowsFromCsv(csvText){
+  const parsed = Papa.parse(csvText.trim(), {header:true, skipEmptyLines:true});
+  if (!parsed.data || !parsed.data.length) throw new Error('Sheet returned no rows.');
+  const cleaned = parsed.data.map(normaliseRow).filter(r => r["Participant's Name"] || r["Participant's ID"]);
+  if (!cleaned.length) throw new Error('No participant rows found in the sheet.');
+  return cleaned;
+}
+
+async function fetchLiveData(){
+  setSrcStatus('loading','Connecting…');
+  $('#refreshBtn').disabled = true;
+  try {
+    const res = await fetch(SHEET_CSV_URL, {cache:'no-store'});
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const txt = await res.text();
+    const cleaned = rowsFromCsv(txt);
+    DATA = cleaned;
+    setSrcStatus('live', 'Live · ' + cleaned.length + ' rows');
+    $('#srcUpdated').textContent = 'Last synced ' + new Date().toLocaleString() + '.';
+    render();
+    showToast('Synced from Google Sheet', cleaned.length + ' rows loaded.');
+  } catch (err){
+    console.warn('Live sheet fetch failed — using embedded snapshot:', err);
+    if (!DATA || !DATA.length) DATA = JSON.parse(JSON.stringify(window.__INITIAL_DATA__));
+    setSrcStatus('cached','Cached snapshot');
+    $('#srcUpdated').textContent = 'Could not reach the live sheet right now — showing the last saved snapshot. Use “Refresh now” to retry.';
+    render();
+  } finally {
+    $('#refreshBtn').disabled = false;
+  }
+}
+$('#refreshBtn').addEventListener('click', fetchLiveData);
+
+/* ============= INIT ============= */
+render();          // paint immediately with the embedded snapshot
+fetchLiveData();   // then refresh from the live Google Sheet
+
+</script>
+</body>
+</html>

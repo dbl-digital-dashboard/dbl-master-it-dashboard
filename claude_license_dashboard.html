@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude AI License — DBL Group Dashboard</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 24px; }
+
+  header { display: flex; align-items: center; gap: 16px; margin-bottom: 28px; }
+  header .logo { width: 56px; height: 56px; border-radius: 14px; overflow: hidden; background: #000; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  header .logo img { width: 100%; height: 100%; object-fit: cover; }
+  header h1 { font-size: 22px; font-weight: 700; color: #f1f5f9; }
+  header p { font-size: 13px; color: #94a3b8; margin-top: 2px; }
+
+  /* STAT CARDS — clickable */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 28px; }
+  .stat-card {
+    background: #1e293b; border-radius: 14px; padding: 20px;
+    border: 2px solid #334155; cursor: pointer;
+    transition: transform 0.18s, border-color 0.18s, box-shadow 0.18s;
+    user-select: none;
+  }
+  .stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.35); }
+  .stat-card.active { box-shadow: 0 0 0 3px inset; }
+  .stat-card .label { font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .stat-card .value { font-size: 32px; font-weight: 700; }
+  .stat-card .sub { font-size: 12px; color: #64748b; margin-top: 4px; }
+  .stat-total { border-color: #1d4ed8; }
+  .stat-total:hover, .stat-total.active { border-color: #60a5fa; box-shadow: 0 0 0 3px rgba(96,165,250,0.2); }
+  .stat-total .value { color: #60a5fa; }
+  .stat-done { border-color: #065f46; }
+  .stat-done:hover, .stat-done.active { border-color: #34d399; box-shadow: 0 0 0 3px rgba(52,211,153,0.2); }
+  .stat-done .value { color: #34d399; }
+  .stat-not { border-color: #7f1d1d; }
+  .stat-not:hover, .stat-not.active { border-color: #f87171; box-shadow: 0 0 0 3px rgba(248,113,113,0.2); }
+  .stat-not .value { color: #f87171; }
+  .stat-pct { border-color: #4c1d95; }
+  .stat-pct:hover, .stat-pct.active { border-color: #a78bfa; box-shadow: 0 0 0 3px rgba(167,139,250,0.2); }
+  .stat-pct .value { color: #a78bfa; }
+
+  .progress-bar-wrap { margin-bottom: 28px; background: #1e293b; border-radius: 14px; padding: 20px; border: 1px solid #334155; }
+  .progress-bar-wrap h2 { font-size: 14px; color: #94a3b8; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .bar-outer { background: #0f172a; border-radius: 999px; height: 14px; overflow: hidden; }
+  .bar-inner { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #34d399, #059669); transition: width 0.8s ease; }
+  .bar-labels { display: flex; justify-content: space-between; font-size: 12px; color: #64748b; margin-top: 8px; }
+
+  .controls { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+  .controls input { background: #1e293b; border: 1px solid #334155; color: #e2e8f0; border-radius: 8px; padding: 9px 14px; font-size: 14px; flex: 1; min-width: 200px; outline: none; }
+  .controls input:focus { border-color: #60a5fa; }
+  .filter-btn { padding: 9px 16px; border-radius: 8px; border: 1px solid #334155; background: #1e293b; color: #94a3b8; font-size: 13px; cursor: pointer; transition: all 0.2s; }
+  .filter-btn:hover, .filter-btn.active { background: #334155; color: #f1f5f9; border-color: #475569; }
+  .filter-btn.active-done { background: #064e3b; color: #34d399; border-color: #065f46; }
+  .filter-btn.active-not  { background: #450a0a; color: #f87171; border-color: #7f1d1d; }
+
+  .table-wrap { background: #1e293b; border-radius: 14px; border: 1px solid #334155; overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  thead tr { background: #0f172a; }
+  thead th { padding: 13px 16px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: #64748b; font-weight: 600; white-space: nowrap; }
+  tbody tr { border-top: 1px solid #1e293b; transition: background 0.15s; cursor: default; }
+  tbody tr:hover { background: #263348; }
+  tbody tr.row-not { background: rgba(239,68,68,0.04); }
+  tbody tr.row-not:hover { background: rgba(239,68,68,0.1); }
+  td { padding: 12px 16px; vertical-align: middle; }
+  td.sl { color: #475569; font-size: 12px; width: 40px; }
+  td.name { font-weight: 500; color: #f1f5f9; }
+  td.email { color: #94a3b8; font-size: 12px; }
+  .domain-tag { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 11px; font-weight: 500; }
+  .domain-digital { background: #1e3a5f; color: #60a5fa; }
+  .domain-group   { background: #1e2d3b; color: #7dd3fc; }
+  .domain-nsl     { background: #2d1b4e; color: #c4b5fd; }
+
+  .badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+  .badge-done { background: #064e3b; color: #34d399; }
+  .badge-not  { background: #450a0a; color: #f87171; }
+  .badge-done::before { content: '✓'; }
+  .badge-not::before  { content: '✕'; }
+
+  .no-results { padding: 48px; text-align: center; color: #475569; font-size: 14px; }
+  .count-label { font-size: 12px; color: #64748b; margin-bottom: 8px; }
+
+  /* MODAL */
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:100; align-items:center; justify-content:center; }
+  .modal-overlay.open { display:flex; }
+  .modal { background:#1e293b; border-radius:18px; border:1px solid #334155; padding:28px; max-width:420px; width:90%; position:relative; animation: fadeUp 0.2s ease; }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+  .modal h3 { font-size:16px; font-weight:700; color:#f1f5f9; margin-bottom:16px; padding-right:24px; }
+  .modal-close { position:absolute; top:16px; right:18px; background:none; border:none; color:#64748b; font-size:20px; cursor:pointer; line-height:1; }
+  .modal-close:hover { color:#f1f5f9; }
+  .modal-row { display:flex; justify-content:space-between; align-items:flex-start; padding: 9px 0; border-bottom:1px solid #0f172a; font-size:13px; }
+  .modal-row:last-child { border-bottom:none; }
+  .modal-key { color:#64748b; flex-shrink:0; width:110px; }
+  .modal-val { color:#e2e8f0; text-align:right; word-break:break-all; }
+  .modal-status-done { color:#34d399; font-weight:700; }
+  .modal-status-not  { color:#f87171; font-weight:700; }
+
+  footer { margin-top: 24px; text-align: center; font-size: 12px; color: #334155; }
+
+  @media (max-width:700px) {
+    table { font-size: 12px; }
+    td, th { padding: 10px 10px; }
+    .stat-card .value { font-size: 24px; }
+    thead th:nth-child(4), td:nth-child(4),
+    thead th:nth-child(5), td:nth-child(5) { display:none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><img src="data:image/jpeg;base64,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" alt="DBL Group"></div>
+  <div>
+    <h1>Claude AI License Dashboard</h1>
+    <p>DBL Group — Proposed Users License Update Status Tracker</p>
+  </div>
+</header>
+
+<div class="stats">
+  <div class="stat-card stat-total" onclick="setFilter('all')" id="card-all" title="Show all users">
+    <div class="label">Total Users</div>
+    <div class="value" id="totalCount">24</div>
+    <div class="sub">Click to show all</div>
+  </div>
+  <div class="stat-card stat-done" onclick="setFilter('done')" id="card-done" title="Show completed">
+    <div class="label">Done</div>
+    <div class="value" id="doneCount">—</div>
+    <div class="sub">Click to filter</div>
+  </div>
+  <div class="stat-card stat-not" onclick="setFilter('not')" id="card-not" title="Show pending">
+    <div class="label">Pending</div>
+    <div class="value" id="notCount">—</div>
+    <div class="sub">Click to filter</div>
+  </div>
+  <div class="stat-card stat-pct" onclick="setFilter('all')" id="card-pct" title="Overall completion">
+    <div class="label">Completion</div>
+    <div class="value" id="pctCount">—</div>
+    <div class="sub">Update rate</div>
+  </div>
+</div>
+
+<div class="progress-bar-wrap">
+  <h2>Overall Progress</h2>
+  <div class="bar-outer"><div class="bar-inner" id="progressBar" style="width:0%"></div></div>
+  <div class="bar-labels"><span id="barLeft">0 done</span><span id="barRight">0 pending</span></div>
+</div>
+
+<div class="controls">
+  <input type="text" id="searchInput" placeholder="🔍  Search by name, email, department, role…" oninput="applyFilters()">
+  <button class="filter-btn active" id="btn-all"  onclick="setFilter('all')">All</button>
+  <button class="filter-btn"        id="btn-done" onclick="setFilter('done')">✓ Done</button>
+  <button class="filter-btn"        id="btn-not"  onclick="setFilter('not')">✕ Pending</button>
+</div>
+<div class="count-label" id="countLabel"></div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>#</th><th>User Name</th><th>Dept / Domain</th><th>Designation</th><th>Role</th><th>Email</th><th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+  <div class="no-results" id="noResults" style="display:none">No matching records found.</div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <button class="modal-close" onclick="closeModalDirect()">✕</button>
+    <h3 id="modalName"></h3>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<footer>DBL Group · Claude AI License Tracker · Generated from Claude_AI_License_List.xlsx</footer>
+
+<script>
+const users = [
+  { sl:1,  name:"Humayun Molla",                              dept:"Digital",     domain:"DBL Digital", desig:"Senior Manager",                  role:"Development Lead",                   email:"humayun.molla@dbl-digital.com",          status:"DONE" },
+  { sl:2,  name:"Md. Abdullah Al Mamun",                      dept:"Digital",     domain:"DBL Digital", desig:"Manager",                         role:"Senior Application Developer",       email:"abdullah.mamun@dbl-digital.com",         status:"DONE" },
+  { sl:3,  name:"Sadman Fatin",                               dept:"Digital",     domain:"DBL Digital", desig:"Deputy Manager",                   role:"Senior Application Developer",       email:"sadman.fatin@dbl-digital.com",           status:"DONE" },
+  { sl:4,  name:"Nikamal Sarker",                             dept:"Digital",     domain:"DBL Digital", desig:"Deputy Manager",                   role:"Senior Application Developer",       email:"nikamal.sarker@dbl-digital.com",         status:"DONE" },
+  { sl:5,  name:"Hasan Mobarak",                              dept:"Digital",     domain:"DBL Digital", desig:"Senior Programmer",                role:"Application Developer",              email:"hasan.mobarak@dbl-digital.com",          status:"DONE" },
+  { sl:6,  name:"Md. Ridwan Mahmud / Tanzina Naznin Shaila",  dept:"Digital",     domain:"DBL Digital", desig:"Asst. Manager / BI Analyst",       role:"Data Engineer",                      email:"analytics@dbl-digital.com",              status:"DONE" },
+  { sl:7,  name:"Isbat Rayhan",                               dept:"Digital",     domain:"DBL Digital", desig:"Assistant Manager",                role:"Integration Developer",              email:"isbat.raihan@dbl-digital.com",           status:"DONE" },
+  { sl:8,  name:"Sysadmin",                                   dept:"Digital",     domain:"DBL Digital", desig:"System Administrator",             role:"System Administration",              email:"sysadmin@dbl-digital.com",               status:"DONE" },
+  { sl:9,  name:"PMO",                                        dept:"Digital",     domain:"DBL Digital", desig:"Digital Team Leads",               role:"Implementation Team Leads",          email:"pmo@dbl-digital.com",                    status:"DONE" },
+  { sl:10, name:"ERP Team",                                   dept:"Digital",     domain:"DBL Digital", desig:"ERP Support Team",                 role:"ERP Techno-Functional Team",         email:"erp@dbl-digital.com",                    status:"DONE" },
+  { sl:11, name:"RMG Team",                                   dept:"Digital",     domain:"DBL Digital", desig:"RMG Support Team",                 role:"RMG Techno-Functional Team",         email:"scm@dbl-digital.com",                    status:"DONE" },
+  { sl:12, name:"Fabric Team",                                dept:"Digital",     domain:"DBL Digital", desig:"Fabric Support Team",              role:"Fabric Techno-Functional Team",      email:"ei@dbl-digital.com",                     status:"DONE" },
+  { sl:13, name:"Md. Imrul Hasan",                            dept:"IT",          domain:"DBL Group",   desig:"Head of IT",                       role:"Head of IT",                         email:"imrul@dbl-group.com",                    status:"DONE" },
+  { sl:14, name:"Iqbal Hossain (AI Lead)",                    dept:"IT",          domain:"DBL Group",   desig:"Assistant Manager",                role:"IT Support",                         email:"iqbal.hossain@dbl-group.com",            status:"DONE" },
+  { sl:15, name:"Md. Atiqur Rahman",                          dept:"IT",          domain:"DBL Group",   desig:"Manager",                          role:"Factory IT Support Lead",            email:"atiqurrahman@dbl-group.com",             status:"NOT"  },
+  { sl:16, name:"Md. Salim Reza Jin",                         dept:"IT",          domain:"DBL Group",   desig:"Assistant Manager",                role:"Developer",                          email:"salim.reza@itml-dbl.com",                status:"DONE" },
+  { sl:17, name:"Omor Kyum Aunto",                            dept:"IT",          domain:"DBL Group",   desig:"Engineer",                         role:"Developer",                          email:"omor.aunto@itml-dbl.com",                status:"DONE" },
+  { sl:18, name:"Nura Alam Ridoy",                            dept:"IT",          domain:"DBL Group",   desig:"System Engineer",                  role:"Developer",                          email:"ridoy@dbl-group.com",                    status:"NOT"  },
+  { sl:19, name:"Md. Mehedi Alam (Sumon)",                    dept:"C&B",         domain:"DBL Group",   desig:"Additional General Manager",        role:"Cost & Budget Head",                 email:"sumon@dbl-group.com",                    status:"DONE" },
+  { sl:20, name:"Md. Shakhawat Hossain",                      dept:"ECO Threads", domain:"DBL Group",   desig:"CEO",                              role:"Operations",                         email:"shakhawat.hossain@dbl-group.com",        status:"DONE" },
+  { sl:21, name:"Bhuiyan Ahmed Imtiaj Swarup",                dept:"ECO Threads", domain:"DBL Group",   desig:"Senior Manager",                   role:"IT",                                 email:"imtiaj.swarup@dbl-group.com",            status:"NOT"  },
+  { sl:22, name:"Quazi Md. Mohebur Rahman",                   dept:"NSL",         domain:"NSL",         desig:"Head of Technology",               role:"Head of Technology",                 email:"mohebur.rahman@neural-semiconductor.com",status:"DONE" },
+  { sl:23, name:"Mohammad Ashikur Rahman Chowdhury",          dept:"NSL",         domain:"NSL",         desig:"Manager",                          role:"Engineer",                           email:"ashikur@neural-semiconductor.com",       status:"DONE" },
+  { sl:24, name:"Sayeed Hossen Bappy",                        dept:"NSL",         domain:"NSL",         desig:"Senior Engineer",                  role:"Engineer",                           email:"sayeed.bappy@neural-semiconductor.com",  status:"DONE" },
+];
+
+let currentFilter = 'all';
+
+function domainClass(domain) {
+  if (domain === 'DBL Digital') return 'domain-digital';
+  if (domain === 'NSL') return 'domain-nsl';
+  return 'domain-group';
+}
+
+function openModal(u) {
+  document.getElementById('modalName').textContent = u.name;
+  document.getElementById('modalBody').innerHTML = `
+    <div class="modal-row"><span class="modal-key">SL No.</span><span class="modal-val">${u.sl}</span></div>
+    <div class="modal-row"><span class="modal-key">Department</span><span class="modal-val">${u.dept}</span></div>
+    <div class="modal-row"><span class="modal-key">Domain</span><span class="modal-val">${u.domain}</span></div>
+    <div class="modal-row"><span class="modal-key">Designation</span><span class="modal-val">${u.desig}</span></div>
+    <div class="modal-row"><span class="modal-key">Role</span><span class="modal-val">${u.role}</span></div>
+    <div class="modal-row"><span class="modal-key">Email</span><span class="modal-val">${u.email}</span></div>
+    <div class="modal-row"><span class="modal-key">License Status</span><span class="modal-val ${u.status==='DONE'?'modal-status-done':'modal-status-not'}">${u.status==='DONE'?'✓ Done':'✕ Pending'}</span></div>
+  `;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+function closeModal(e) { if (e.target === document.getElementById('modalOverlay')) closeModalDirect(); }
+function closeModalDirect() { document.getElementById('modalOverlay').classList.remove('open'); }
+
+function renderTable(data) {
+  const tbody = document.getElementById('tableBody');
+  const noRes = document.getElementById('noResults');
+  tbody.innerHTML = '';
+  if (data.length === 0) { noRes.style.display = ''; return; }
+  noRes.style.display = 'none';
+  data.forEach(u => {
+    const tr = document.createElement('tr');
+    tr.className = u.status === 'NOT' ? 'row-not' : '';
+    tr.style.cursor = 'pointer';
+    tr.title = 'Click to view details';
+    tr.innerHTML = `
+      <td class="sl">${u.sl}</td>
+      <td class="name">${u.name}</td>
+      <td><span class="domain-tag ${domainClass(u.domain)}">${u.domain}</span><br><span style="color:#64748b;font-size:11px">${u.dept}</span></td>
+      <td style="color:#cbd5e1;font-size:12px">${u.desig}</td>
+      <td style="color:#94a3b8;font-size:12px">${u.role}</td>
+      <td class="email">${u.email}</td>
+      <td><span class="badge ${u.status==='DONE'?'badge-done':'badge-not'}">${u.status==='DONE'?'Done':'Pending'}</span></td>
+    `;
+    tr.addEventListener('click', () => openModal(u));
+    tbody.appendChild(tr);
+  });
+}
+
+function applyFilters() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  let data = users;
+  if (currentFilter === 'done') data = data.filter(u => u.status === 'DONE');
+  if (currentFilter === 'not')  data = data.filter(u => u.status === 'NOT');
+  if (q) data = data.filter(u =>
+    u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) ||
+    u.dept.toLowerCase().includes(q) || u.domain.toLowerCase().includes(q) ||
+    u.role.toLowerCase().includes(q) || u.desig.toLowerCase().includes(q)
+  );
+  document.getElementById('countLabel').textContent = `Showing ${data.length} of ${users.length} users`;
+  renderTable(data);
+}
+
+function setFilter(f) {
+  currentFilter = f;
+  ['all','done','not'].forEach(k => {
+    const btn = document.getElementById('btn-'+k);
+    btn.className = 'filter-btn';
+    const card = document.getElementById('card-'+k);
+    if (card) card.classList.remove('active');
+    if (k === f) {
+      btn.classList.add(k==='done'?'active-done': k==='not'?'active-not':'active');
+      if (card) card.classList.add('active');
+    }
+  });
+  applyFilters();
+}
+
+function updateStats() {
+  const done = users.filter(u => u.status==='DONE').length;
+  const not  = users.filter(u => u.status==='NOT').length;
+  const pct  = Math.round((done / users.length) * 100);
+  document.getElementById('totalCount').textContent = users.length;
+  document.getElementById('doneCount').textContent  = done;
+  document.getElementById('notCount').textContent   = not;
+  document.getElementById('pctCount').textContent   = pct + '%';
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('barLeft').textContent  = done + ' updated';
+  document.getElementById('barRight').textContent = not + ' pending';
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModalDirect(); });
+updateStats();
+setFilter('all');
+</script>
+</body>
+</html>
